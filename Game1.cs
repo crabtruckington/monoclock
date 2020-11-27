@@ -370,7 +370,11 @@ namespace monoclock
                 isAlarming = true;
                 displayNowPlaying = true;
                 displaySnooze = true;
-                snoozing = false;
+                if (!snoozing)
+                {
+                    currentSong = 0;
+                }
+                snoozing = false;                
                 GetSongsInMusicFolder();
                 totalSongs = musicToPlay.Length;
             }
