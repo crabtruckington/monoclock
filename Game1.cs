@@ -114,9 +114,9 @@ namespace monoclock
             if (isLinux)
             {
                 IsMouseVisible = false;
-                Process fixPA = Process.Start("/bin/bash", "pactl load-module module-alsa-sink device='hw:0,0'");
+                Process fixPA = Process.Start("pactl", "load-module module-alsa-sink device='hw:0,0'");
                 fixPA.WaitForExit();
-                fixPA = Process.Start("/bin/bash", "pactl set-default-sink alsa_output.hw_0_0");
+                fixPA = Process.Start("pactl", "set-default-sink alsa_output.hw_0_0");
                 fixPA.WaitForExit();
             }
             base.Initialize();
