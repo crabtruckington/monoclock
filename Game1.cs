@@ -388,9 +388,9 @@ namespace monoclock
                 }
                 else
                 {
-                    Console.WriteLine("we should never get here");
-                    mpg123Process.Kill();
-                    mpg123Process.Dispose();
+                    //Console.WriteLine("we should never get here");
+                    //mpg123Process.Kill();
+                    //mpg123Process.Dispose();
                 }                
             }
         }
