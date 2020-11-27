@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -29,6 +30,7 @@ namespace monoclock
 
         string alarmFile = "./alarm.ini";
         string alarmTime = "";
+        string clockFaceColorFile = "./clockface.ini";
         string snoozeAlarmTime = null;
         string nowPlayingText = "";
         string[] musicToPlay = new string[0];
@@ -56,15 +58,24 @@ namespace monoclock
         Vector2 screenCenterVector = new Vector2();
         int lowerRowTextAlign = 333;
 
-        Thread setAlarmTimeThread;
-        Thread alarmPlayThread;
+        Task setAlarmTimeTask;
+        Task alarmPlayTask;
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        CancellationToken cancellationToken;
 
         Stopwatch clockRestartTimer = new Stopwatch();
         Stopwatch delayAlarmingOnSameTime = new Stopwatch();
+        Stopwatch clockFaceSaveTimer = new Stopwatch();
         Stopwatch clockFlashTimer = new Stopwatch();
 
         MouseState currentMouseState = Mouse.GetState();
         MouseState lastMouseState = Mouse.GetState();
+
+        ProcessStartInfo mpg123ProcessInfo = new ProcessStartInfo();
+        Process mpg123Process;
+        int totalSongs;
+        int currentSong = 0;
+
 
         public Game1()
         {
@@ -94,6 +105,7 @@ namespace monoclock
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            cancellationToken = cancellationTokenSource.Token;
 
             clockNumbersFont = Content.Load<SpriteFont>("clockNumbers");
             nowPlayingFont = Content.Load<SpriteFont>("clockNowPlaying");
@@ -122,10 +134,24 @@ namespace monoclock
             alarmTime = GetAlarmTimeFromFile();
             GetSongsInMusicFolder();
             SetupClockFaceColorsLists();
+            clockFaceColorIndex = GetClockFaceColorFromFile();
+            if (clockFaceColorIndex >= clockFaceColorsList.Count)
+            {
+                clockFaceColorIndex = 0;
+            }
+            clockFaceColor = clockFaceColorsList[clockFaceColorIndex];
+            clockFaceDisabledColor = clockFaceDisabledColorsList[clockFaceColorIndex];
             clockFlashTimer.Start();
 
-            //TEMP NOW PLAY
-            nowPlayingText = "Now Playing: New Terror Class - Did you hear that we fucked";
+            mpg123ProcessInfo.FileName = @"mpg123";
+            mpg123ProcessInfo.Arguments = "";
+            mpg123ProcessInfo.CreateNoWindow = true;
+#if DEBUG
+            mpg123ProcessInfo.FileName = @"T:\mpg123\mpg123.exe";
+            mpg123ProcessInfo.WindowStyle = ProcessWindowStyle.Hidden;
+#endif
+
+            Process mpg123Process = Process.Start(mpg123ProcessInfo);
         }
 
 
@@ -134,12 +160,10 @@ namespace monoclock
         {
             currentMouseState = Mouse.GetState();
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-
+            //catch interface clicks
             if (currentMouseState.LeftButton == ButtonState.Pressed && lastMouseState.LeftButton == ButtonState.Released)
             {
-                Console.WriteLine("Mouse button pressed");
+                //adding alarm time
                 if (MouseCursorInRectangle(currentMouseState.Position, alarmPlusOutline))
                 {
                     if (clockRestartTimer.IsRunning)
@@ -149,21 +173,26 @@ namespace monoclock
                     }
                     settingAlarm = true;
                     displayAlarmTime = true;
-                    if (setAlarmTimeThread != null)
+                    if (setAlarmTimeTask != null)
                     {
-                        if (setAlarmTimeThread.IsAlive == false)
+                        if (setAlarmTimeTask.IsCompleted == false)
                         {
-                            setAlarmTimeThread = new Thread(IncreaseAlarmTime);
-                            setAlarmTimeThread.Start();
+                            cancellationTokenSource.Cancel();
+                            //setAlarmTimeTask.Wait();
+                            setAlarmTimeTask = Task.Run(() => { ChangeAlarmTime(1); }, cancellationToken);
+                        }
+                        else
+                        {
+                            setAlarmTimeTask = Task.Run(() => { ChangeAlarmTime(1); }, cancellationToken);
                         }
                     }
                     else
                     {
-                        setAlarmTimeThread = new Thread(IncreaseAlarmTime);
-                        setAlarmTimeThread.Start();
+                        setAlarmTimeTask = Task.Run(() => { ChangeAlarmTime(1); }, cancellationToken );
                     }
                 }
 
+                //removing alarm time
                 if (MouseCursorInRectangle(currentMouseState.Position, alarmMinusOutline))
                 {
                     if (clockRestartTimer.IsRunning)
@@ -173,21 +202,26 @@ namespace monoclock
                     }
                     settingAlarm = true;
                     displayAlarmTime = true;
-                    if (setAlarmTimeThread != null)
-                    {
-                        if (setAlarmTimeThread.IsAlive == false)
+                    if (setAlarmTimeTask != null)
+                    { 
+                        if (setAlarmTimeTask.IsCompleted == false)
                         {
-                            setAlarmTimeThread = new Thread(DecreaseAlarmTime);
-                            setAlarmTimeThread.Start();
+                            cancellationTokenSource.Cancel();
+                            //setAlarmTimeTask.Wait();
+                            setAlarmTimeTask = Task.Run(() => { ChangeAlarmTime(-1); }, cancellationToken);
+                        }
+                        else
+                        {
+                            setAlarmTimeTask = Task.Run(() => { ChangeAlarmTime(-1); }, cancellationToken);
                         }
                     }
-                    else 
+                    else
                     {
-                        setAlarmTimeThread = new Thread(DecreaseAlarmTime);
-                        setAlarmTimeThread.Start();
+                        setAlarmTimeTask = Task.Run(() => { ChangeAlarmTime(-1); }, cancellationToken);
                     }
                 }                
 
+                //toggling alarm
                 if (MouseCursorInRectangle(currentMouseState.Position, alarmBellOutline))
                 {
                     if (alarmEnabled == true)
@@ -211,6 +245,7 @@ namespace monoclock
                     }
                 }
 
+                //enabling snooze
                 if (MouseCursorInRectangle(currentMouseState.Position, snoozeOutline) && isAlarming)
                 {
                     isAlarming = false;
@@ -219,8 +254,10 @@ namespace monoclock
                     displayNowPlaying = false;
                     delayAlarmingOnSameTime.Start();
                     snoozeAlarmTime = DateTime.Now.AddMinutes(7).ToShortTimeString();
+                    StopMusicIfPlaying();
                 }
 
+                //stopping alarm, cancelling snooze
                 if (MouseCursorInRectangle(currentMouseState.Position, alarmStopOutline) && (isAlarming || snoozing))
                 {
                     isAlarming = false;
@@ -231,8 +268,10 @@ namespace monoclock
                     snoozing = false;
                     delayAlarmingOnSameTime.Start();
                     snoozeAlarmTime = null;
+                    StopMusicIfPlaying();
                 }
 
+                //changing clockface colors
                 if (MouseCursorInRectangle(currentMouseState.Position, hamburgerOutline))
                 {
                     clockFaceColorIndex += 1;
@@ -242,10 +281,13 @@ namespace monoclock
                     }
                     clockFaceColor = clockFaceColorsList[clockFaceColorIndex];
                     clockFaceDisabledColor = clockFaceDisabledColorsList[clockFaceColorIndex];
+                    clockFaceSaveTimer.Reset();
+                    clockFaceSaveTimer.Start();
                 }
 
             }
 
+            //releasing mouse button
             if (currentMouseState.LeftButton == ButtonState.Released && lastMouseState.LeftButton == ButtonState.Pressed)
             {
                 Console.WriteLine("Mouse button released");
@@ -253,9 +295,20 @@ namespace monoclock
                 {
                     settingAlarm = false;
                     clockRestartTimer.Start();
+                    cancellationTokenSource = new CancellationTokenSource();
+                    cancellationToken = cancellationTokenSource.Token;
                 }
             }
 
+            //saves the clock face color after 1 minute
+            if (clockFaceSaveTimer.IsRunning && clockFaceSaveTimer.ElapsedMilliseconds > 60000)
+            {
+                clockFaceSaveTimer.Stop();
+                clockFaceSaveTimer.Reset();
+                WriteClockFaceColorToFile();
+            }
+
+            //show time display after setting alarm display
             if (clockRestartTimer.IsRunning && clockRestartTimer.ElapsedMilliseconds > 3000)
             {
                 clockRestartTimer.Stop();
@@ -264,6 +317,7 @@ namespace monoclock
                 WriteNewAlarmTimeToFile();
             }
 
+            //start alarming
             if ((alarmTime == DateTime.Now.ToShortTimeString() && isAlarming == false && alarmedToday == false && alarmEnabled == true) ||
                 (snoozeAlarmTime == DateTime.Now.ToShortTimeString() && isAlarming == false && alarmedToday == false && alarmEnabled == true))
             {
@@ -271,10 +325,11 @@ namespace monoclock
                 displayNowPlaying = true;
                 displaySnooze = true;
                 snoozing = false;
-                alarmPlayThread = new Thread(PlayAlarm);
-                alarmPlayThread.Start();
+                GetSongsInMusicFolder();
+                totalSongs = musicToPlay.Length;
             }
 
+            //dont alarm a re-alarm if we cancel an alarm immediately
             if (delayAlarmingOnSameTime.IsRunning)
             {
                 //2 minutes
@@ -286,22 +341,31 @@ namespace monoclock
                 }
             }
 
+            //play music if we're alarming
+            if (isAlarming)
+            {
+                if (mpg123Process == null || mpg123Process.HasExited)
+                {
+                    Console.WriteLine("playing music");
+                    string currentSongPathArgument = "\"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
+                    nowPlayingText = "Now Playing: " + Path.GetFileName(musicToPlay[currentSong]);
+                    mpg123ProcessInfo.Arguments = currentSongPathArgument;
+                    mpg123Process = Process.Start(mpg123ProcessInfo);
+
+                    if (currentSong < totalSongs - 1)
+                    {
+                        currentSong += 1;
+                    }
+                    else
+                    {
+                        currentSong = 0;
+                    }
+                }
+            }
+
             lastMouseState = currentMouseState;
             
             base.Update(gameTime);
-        }
-
-        private bool MouseCursorInRectangle(Point mousePosition, Rectangle targetRectangle)
-        {
-            bool inRectangle = false;
-
-            if (mousePosition.X >= targetRectangle.X && mousePosition.X <= targetRectangle.X + targetRectangle.Width &&
-                mousePosition.Y >= targetRectangle.Y && mousePosition.Y <= targetRectangle.Y + targetRectangle.Height)
-            {
-                inRectangle = true;
-            }
-
-            return inRectangle;
         }
 
         protected override void Draw(GameTime gameTime)
@@ -393,12 +457,38 @@ namespace monoclock
             base.Draw(gameTime);
         }
 
+        //determines if the mouse cursor is over a button
+        private bool MouseCursorInRectangle(Point mousePosition, Rectangle targetRectangle)
+        {
+            bool inRectangle = false;
+
+            if (mousePosition.X >= targetRectangle.X && mousePosition.X <= targetRectangle.X + targetRectangle.Width &&
+                mousePosition.Y >= targetRectangle.Y && mousePosition.Y <= targetRectangle.Y + targetRectangle.Height)
+            {
+                inRectangle = true;
+            }
+
+            return inRectangle;
+        }
+
+        //cancels music if alarm is supposed to be stopping
+        private void StopMusicIfPlaying()
+        {
+            if (mpg123Process.HasExited == false)
+            {
+                mpg123Process.Kill();
+                mpg123Process.Dispose();
+            }
+        }
+
+        //determines where to position centered text
         private Vector2 GetTextOffsetVector(string text, SpriteFont font)
         {
             Vector2 textSize = font.MeasureString(text);
             return new Vector2((int)Math.Round(textSize.X, 0) / 2, (int)Math.Round(textSize.Y, 0) / 2);
         }
 
+        //creates a blank texture for primitive drawing 
         public Texture2D createButtonOutline()
         {
             Texture2D texture;
@@ -408,7 +498,29 @@ namespace monoclock
 
             return texture;
         }
+                
+        //changes the alarm time, takes an integer (negative for decrease)
+        private void ChangeAlarmTime(int timeModifier)
+        {
+            Stopwatch alarmSettingTimer = new Stopwatch();
+            alarmSettingTimer.Start();
+            while (settingAlarm)
+            {
+                if (alarmSettingTimer.ElapsedMilliseconds < 2000 || !(alarmTime.EndsWith("0 AM") || alarmTime.EndsWith("0 PM")))
+                {
+                    alarmTime = DateTime.Parse(alarmTime).AddMinutes(1 * timeModifier).ToShortTimeString();
+                }
+                else
+                {
+                    alarmTime = DateTime.Parse(alarmTime).AddMinutes(10 * timeModifier).ToShortTimeString();
+                }    
+                Thread.Sleep(200);
+            }
+            alarmSettingTimer.Stop();
+            alarmSettingTimer.Reset();
+        }
 
+        //reads the alarm time the ini file
         private string GetAlarmTimeFromFile()
         {
             string alarmTime = "";
@@ -425,103 +537,40 @@ namespace monoclock
             return alarmTime;
         }
 
-        private void IncreaseAlarmTime()
-        {
-            Stopwatch alarmSettingTimer = new Stopwatch();
-            alarmSettingTimer.Start();
-            while (settingAlarm)
-            {
-                if (alarmSettingTimer.ElapsedMilliseconds < 2000 || !(alarmTime.EndsWith("0 AM") || alarmTime.EndsWith("0 PM")))
-                {
-                    alarmTime = DateTime.Parse(alarmTime).AddMinutes(1).ToShortTimeString();
-                }
-                else
-                {
-                    alarmTime = DateTime.Parse(alarmTime).AddMinutes(10).ToShortTimeString();
-                }    
-                Thread.Sleep(150);
-            }
-            alarmSettingTimer.Stop();
-            alarmSettingTimer.Reset();
-        }
-        private void DecreaseAlarmTime()
-        {
-            Stopwatch alarmSettingTimer = new Stopwatch();
-            alarmSettingTimer.Start();
-            while (settingAlarm)
-            {
-                if (alarmSettingTimer.ElapsedMilliseconds < 2000 || !(alarmTime.EndsWith("0 AM") || alarmTime.EndsWith("0 PM")))
-                {
-                    alarmTime = DateTime.Parse(alarmTime).AddMinutes(-1).ToShortTimeString();
-                }
-                else
-                {
-                    alarmTime = DateTime.Parse(alarmTime).AddMinutes(-10).ToShortTimeString();
-                }
-                Thread.Sleep(150);
-            }
-            alarmSettingTimer.Stop();
-            alarmSettingTimer.Reset();
-        }
+        //write alarm time to alarm file
         private void WriteNewAlarmTimeToFile()
         {
             File.WriteAllText(alarmFile, alarmTime);
         }
 
+        //reads the clockface color from the color file
+        private int GetClockFaceColorFromFile()
+        {
+            int clockFaceColorFromFile = 0;
+            if (File.Exists(clockFaceColorFile))
+            {
+                if (int.TryParse(File.ReadAllText(clockFaceColorFile), out clockFaceColorFromFile));
+            }
+            else
+            {
+                File.WriteAllText(clockFaceColorFile, clockFaceColor.ToString());
+            }
+            return clockFaceColorFromFile;
+        }
+
+        //writes the clock face color to the color file
+        private void WriteClockFaceColorToFile()
+        {
+            File.WriteAllText(clockFaceColorFile, clockFaceColorIndex.ToString());
+        }
+
+        //find the songs we are supposed to play
         private void GetSongsInMusicFolder()
         {
             musicToPlay = Directory.GetFiles(@"./Content/music", "*.*", SearchOption.AllDirectories);
         }
 
-
-        private void PlayAlarm()
-        {
-            Console.WriteLine("In alarm thread");
-            GetSongsInMusicFolder();
-            Console.WriteLine("got music");
-            ProcessStartInfo mpg123ProcessInfo = new ProcessStartInfo();
-            //mpg123ProcessInfo.FileName = @"T:\mpg123\mpg123.exe";
-            mpg123ProcessInfo.FileName = @"mpg123";
-            mpg123ProcessInfo.Arguments = "";
-            mpg123ProcessInfo.CreateNoWindow = true;
-            //mpg123ProcessInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            Console.WriteLine("process built");
-            Process mpg123Process = Process.Start(mpg123ProcessInfo);
-            Console.WriteLine("process init'd");
-            int totalSongs = musicToPlay.Length;
-            int currentSong = 0;
-
-            do
-            {
-                if (mpg123Process == null || mpg123Process.HasExited)
-                {
-                    Console.WriteLine("playing music");
-                    string currentSongPathArgument = "\"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
-                    nowPlayingText = "Now Playing: " + Path.GetFileName(musicToPlay[currentSong]);
-                    mpg123ProcessInfo.Arguments = currentSongPathArgument;
-                    mpg123Process = Process.Start(mpg123ProcessInfo);
-                    
-                    if (currentSong < totalSongs - 1)
-                    {
-                        currentSong += 1;
-                    }
-                    else
-                    {
-                        currentSong = 0;
-                    }
-                }
-            } while (isAlarming);
-
-            Console.WriteLine("finished playing music");
-
-            if (mpg123Process.HasExited == false)
-            {
-                mpg123Process.Kill();
-            }
-            mpg123Process.Dispose();
-
-        }
-
+        //list of clock face colors, manually make sure enabled/disabled colors are aligned between lists
         private void SetupClockFaceColorsLists()
         {
             clockFaceColorsList.Add(Color.White);
