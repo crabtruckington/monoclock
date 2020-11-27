@@ -45,28 +45,16 @@
     <None Update="Content\clockNumbers.spritefont">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Content\liquid_crystal\LiquidCrystal-Bold.otf">
+    <None Update="Content\ds_digital\DS-DIGI.TTF">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Content\liquid_crystal\LiquidCrystal-BoldItalic.otf">
+    <None Update="Content\ds_digital\DS-DIGIB.TTF">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Content\liquid_crystal\LiquidCrystal-ExBold.otf">
+    <None Update="Content\ds_digital\DS-DIGII.TTF">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Content\liquid_crystal\LiquidCrystal-ExBoldItalic.otf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Content\liquid_crystal\LiquidCrystal-Light.otf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Content\liquid_crystal\LiquidCrystal-LightItalic.otf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Content\liquid_crystal\LiquidCrystal-Normal.otf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Content\liquid_crystal\LiquidCrystal-NormalItalic.otf">
+    <None Update="Content\ds_digital\DS-DIGIT.TTF">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Content\music\0002942.mp3">

@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -16,7 +16,6 @@ namespace monoclock
         private SpriteFont clockNumbersFont;
         private SpriteFont nowPlayingFont;
         private SpriteFont snoozeRegularFont;
-        private SpriteFont snoozeItalicFont;
         private SpriteFont alarmSetButtonsFont;
 
         bool alarmEnabled = true;
@@ -38,6 +37,10 @@ namespace monoclock
         Color clockFaceDisabledColor = Color.Gray;
         Color clockButtonOutlineColor = Color.Gray;
 
+        List<Color> clockFaceColorsList = new List<Color>();
+        List<Color> clockFaceDisabledColorsList = new List<Color>();
+        int clockFaceColorIndex = 0;
+
         Texture2D alarmEnabledIcon;
         Texture2D alarmDisabledIcon;
         Texture2D hamburgerMenuIcon;
@@ -49,11 +52,16 @@ namespace monoclock
         Rectangle hamburgerOutline;
         Rectangle alarmStopOutline;
 
+        Vector2 screenSize = new Vector2();
+        Vector2 screenCenterVector = new Vector2();
+        int lowerRowTextAlign = 333;
+
         Thread setAlarmTimeThread;
         Thread alarmPlayThread;
 
         Stopwatch clockRestartTimer = new Stopwatch();
         Stopwatch delayAlarmingOnSameTime = new Stopwatch();
+        Stopwatch clockFlashTimer = new Stopwatch();
 
         MouseState currentMouseState = Mouse.GetState();
         MouseState lastMouseState = Mouse.GetState();
@@ -90,8 +98,11 @@ namespace monoclock
             clockNumbersFont = Content.Load<SpriteFont>("clockNumbers");
             nowPlayingFont = Content.Load<SpriteFont>("clockNowPlaying");
             snoozeRegularFont = Content.Load<SpriteFont>("clockAlarm");
-            snoozeItalicFont = Content.Load<SpriteFont>("clockAlarmItalic");
             alarmSetButtonsFont = Content.Load<SpriteFont>("clockAlarm");
+            //clockNumbersFont = Content.Load<SpriteFont>("commodoreAngled");
+            //nowPlayingFont = Content.Load<SpriteFont>("commodoreAngledNowPlaying");
+            //snoozeRegularFont = Content.Load<SpriteFont>("commodoreAngledNormal");
+            //alarmSetButtonsFont = Content.Load<SpriteFont>("commodoreAngledNormal");
             alarmEnabledIcon = Content.Load<Texture2D>("lcdsegmentbell50x50");
             alarmDisabledIcon = Content.Load<Texture2D>("lcdsegmentbelloff50x50");
             hamburgerMenuIcon = Content.Load<Texture2D>("hamburger50x50");
@@ -105,8 +116,13 @@ namespace monoclock
 
             primitiveTexture = createButtonOutline();
 
+            screenSize = new Vector2(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            screenCenterVector = new Vector2(screenSize.X / 2, screenSize.Y / 2);
+            
             alarmTime = GetAlarmTimeFromFile();
             GetSongsInMusicFolder();
+            SetupClockFaceColorsLists();
+            clockFlashTimer.Start();
 
             //TEMP NOW PLAY
             nowPlayingText = "Now Playing: New Terror Class - Did you hear that we fucked";
@@ -204,11 +220,12 @@ namespace monoclock
                     snoozeAlarmTime = DateTime.Now.AddMinutes(7).ToShortTimeString();
                 }
 
-                if (MouseCursorInRectangle(currentMouseState.Position, alarmStopOutline) && isAlarming)
+                if (MouseCursorInRectangle(currentMouseState.Position, alarmStopOutline) && (isAlarming || snoozing))
                 {
                     isAlarming = false;
                     alarmedToday = true;
                     displayNowPlaying = false;
+                    snoozing = false;
                     displaySnooze = false;
                     snoozing = false;
                     delayAlarmingOnSameTime.Start();
@@ -217,7 +234,13 @@ namespace monoclock
 
                 if (MouseCursorInRectangle(currentMouseState.Position, hamburgerOutline))
                 {
-                    //change color
+                    clockFaceColorIndex += 1;
+                    if (clockFaceColorIndex >= clockFaceColorsList.Count)
+                    {
+                        clockFaceColorIndex = 0;
+                    }
+                    clockFaceColor = clockFaceColorsList[clockFaceColorIndex];
+                    clockFaceDisabledColor = clockFaceDisabledColorsList[clockFaceColorIndex];
                 }
 
             }
@@ -231,7 +254,7 @@ namespace monoclock
                 }
             }
 
-            if (clockRestartTimer.IsRunning && clockRestartTimer.ElapsedMilliseconds > 2000)
+            if (clockRestartTimer.IsRunning && clockRestartTimer.ElapsedMilliseconds > 3000)
             {
                 clockRestartTimer.Stop();
                 clockRestartTimer.Reset();
@@ -281,23 +304,18 @@ namespace monoclock
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
-
-            Vector2 screenSize = new Vector2(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
-            Vector2 screenCenterVector = new Vector2(screenSize.X / 2, screenSize.Y / 2);
             string displayTime;
-            int lowerRowTextAlign = 333;
-            
+            GraphicsDevice.Clear(Color.Black);
+                        
             spriteBatch.Begin();
 
-
+            //uncomment to see where the button edges are
             //spriteBatch.Draw(primitiveTexture, alarmBellOutline, clockButtonOutlineColor);
             //spriteBatch.Draw(primitiveTexture, alarmMinusOutline, clockButtonOutlineColor);
             //spriteBatch.Draw(primitiveTexture, alarmPlusOutline, clockButtonOutlineColor);
             //spriteBatch.Draw(primitiveTexture, snoozeOutline, clockButtonOutlineColor);
             //spriteBatch.Draw(primitiveTexture, hamburgerOutline, clockButtonOutlineColor);
             //spriteBatch.Draw(primitiveTexture, alarmStopOutline, clockButtonOutlineColor);
-
 
             //draw clock numbers
             if (displayAlarmTime)
@@ -312,19 +330,32 @@ namespace monoclock
             Vector2 clockTimeDisplayOffsetVector = GetTextOffsetVector(displayTime, clockNumbersFont);
             Vector2 clockTimeDisplayPosition = new Vector2(screenCenterVector.X - clockTimeDisplayOffsetVector.X, screenCenterVector.Y - clockTimeDisplayOffsetVector.Y - 20);
             spriteBatch.DrawString(clockNumbersFont, displayTime, clockTimeDisplayPosition, clockFaceColor);
+            
 
-
+            //draw alarm set numbers
             spriteBatch.DrawString(alarmSetButtonsFont, "-", new Vector2(18, lowerRowTextAlign), clockFaceColor);
             spriteBatch.DrawString(alarmSetButtonsFont, "+", new Vector2(70, lowerRowTextAlign), clockFaceColor);
 
-
+            //draw snoozing button
             if (displaySnooze)
             {
                 if (snoozing)
                 {
-                    Vector2 snoozeDisplayOffset = GetTextOffsetVector("SNOOZING", snoozeRegularFont);
-                    Vector2 snoozeDisplayPosition = new Vector2(screenCenterVector.X - snoozeDisplayOffset.X, lowerRowTextAlign);
-                    spriteBatch.DrawString(snoozeRegularFont, "SNOOZING", snoozeDisplayPosition, clockFaceDisabledColor);
+                    if (clockFlashTimer.ElapsedMilliseconds < 1000)
+                    {
+                        Vector2 snoozeDisplayOffset = GetTextOffsetVector("SNOOZING", snoozeRegularFont);
+                        Vector2 snoozeDisplayPosition = new Vector2(screenCenterVector.X - snoozeDisplayOffset.X, lowerRowTextAlign);
+                        spriteBatch.DrawString(snoozeRegularFont, "SNOOZING", snoozeDisplayPosition, clockFaceDisabledColor);
+                    }
+                    else if (clockFlashTimer.ElapsedMilliseconds < 2000)
+                    {
+
+                    }
+                    else
+                    {
+                        clockFlashTimer.Restart();
+                    }
+
                 }
                 else
                 {
@@ -334,6 +365,7 @@ namespace monoclock
                 }
             }
 
+            //drawn alarm toggle button
             if (alarmEnabled)
             {
                 spriteBatch.Draw(alarmEnabledIcon, new Vector2(screenSize.X - 60, screenSize.Y - 60), clockFaceColor);
@@ -343,8 +375,10 @@ namespace monoclock
                 spriteBatch.Draw(alarmDisabledIcon, new Vector2(screenSize.X - 60, screenSize.Y - 60), Color.Red);
             }
 
+            //drawn hamburger menu
             spriteBatch.Draw(hamburgerMenuIcon, new Vector2(screenSize.X - 60, 10), clockFaceColor);
 
+            //draw now playing text
             if (displayNowPlaying)
             {
                 Vector2 nowPlayingDisplayOffset = GetTextOffsetVector(nowPlayingText, nowPlayingFont);
@@ -442,7 +476,8 @@ namespace monoclock
         {            
             GetSongsInMusicFolder();
             ProcessStartInfo mpg123ProcessInfo = new ProcessStartInfo();
-            mpg123ProcessInfo.FileName = @"T:\mpg123\mpg123.exe";
+            //mpg123ProcessInfo.FileName = @"T:\mpg123\mpg123.exe";
+            mpg123ProcessInfo.FileName = @"mpg123";
             mpg123ProcessInfo.Arguments = "";
             mpg123ProcessInfo.CreateNoWindow = true;
             mpg123ProcessInfo.WindowStyle = ProcessWindowStyle.Hidden;
@@ -476,6 +511,23 @@ namespace monoclock
             }
             mpg123Process.Dispose();
 
+        }
+
+        private void SetupClockFaceColorsLists()
+        {
+            clockFaceColorsList.Add(Color.White);
+            clockFaceColorsList.Add(new Color(72, 159, 247));//light blue
+            clockFaceColorsList.Add(new Color(0, 255, 4));//neon green
+            clockFaceColorsList.Add(new Color(240, 130, 12));//orange
+            clockFaceColorsList.Add(new Color(179, 14, 230));//purple
+            clockFaceColorsList.Add(new Color(237, 7, 30));//red
+
+            clockFaceDisabledColorsList.Add(Color.Gray);
+            clockFaceDisabledColorsList.Add(new Color(36, 81, 125));//light blue disabled
+            clockFaceDisabledColorsList.Add(new Color(16, 122, 0));//neon green disabled
+            clockFaceDisabledColorsList.Add(new Color(125, 67, 5));//orange disabled
+            clockFaceDisabledColorsList.Add(new Color(77, 6, 99));//purple disabled
+            clockFaceDisabledColorsList.Add(new Color(128, 8, 20));//red disabled
         }
     }
 }
