@@ -42,3 +42,6 @@ T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\liquid_cryst
 T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\hamburger50x50.xnb
 T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\lcdsegmentbell50x50.xnb
 T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\lcdsegmentbelloff50x50.xnb
+T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\music\0002942.mp3
+T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\music\0010744.mp3
+T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\music\0011236.mp3
