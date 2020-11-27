@@ -59,7 +59,7 @@ namespace monoclock
 
         Vector2 screenSize = new Vector2();
         Vector2 screenCenterVector = new Vector2();
-        int lowerRowTextAlign = 333;
+        int lowerRowTextAlign = 413;
 
         Task setAlarmTimeTask;
         CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
@@ -84,23 +84,33 @@ namespace monoclock
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             graphics = new GraphicsDeviceManager(this)
-            {
+            {                
                 IsFullScreen = false,
                 PreferredBackBufferWidth = 800,
-                PreferredBackBufferHeight = 400
+                PreferredBackBufferHeight = 480
             };
+            if (isLinux)
+            {
+                graphics.IsFullScreen = true;
+            }
             graphics.ApplyChanges();
 
             // For some reason, graphics needs to be applied twice to take effect. Nonsense bug in monogame.
             graphics.PreferredBackBufferWidth = 800;
-            graphics.PreferredBackBufferHeight = 400;
+            graphics.PreferredBackBufferHeight = 480;
+            if (isLinux)
+            {
+                graphics.IsFullScreen = true;
+            }
             graphics.ApplyChanges();
         }
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
+            //limit to 20fps
+            IsFixedTimeStep = true;
+            TargetElapsedTime = TimeSpan.FromSeconds(1 / 20.0f);
+         
             base.Initialize();
         }
 
@@ -122,12 +132,13 @@ namespace monoclock
             alarmDisabledIcon = Content.Load<Texture2D>("lcdsegmentbelloff50x50");
             hamburgerMenuIcon = Content.Load<Texture2D>("hamburger50x50");
 
-            alarmMinusOutline = new Rectangle(5, 340, 50, 50);
-            alarmPlusOutline = new Rectangle(56, 340, 50, 50);
-            snoozeOutline = new Rectangle(120, 340, 600, 50);
-            alarmBellOutline = new Rectangle(740, 340, 50, 50);
+            int bottomScreenOffset = GraphicsDevice.Viewport.Height - 60;
+            alarmMinusOutline = new Rectangle(5, bottomScreenOffset, 50, 50);
+            alarmPlusOutline = new Rectangle(56, bottomScreenOffset, 50, 50);
+            snoozeOutline = new Rectangle(120, bottomScreenOffset, 600, 50);
+            alarmBellOutline = new Rectangle(740, bottomScreenOffset, 50, 50);
             hamburgerOutline = new Rectangle(740, 10, 50, 50);
-            alarmStopOutline = new Rectangle(0, 60, graphics.GraphicsDevice.Viewport.Width, 280);
+            alarmStopOutline = new Rectangle(0, 60, graphics.GraphicsDevice.Viewport.Width, bottomScreenOffset - 60);
 
             primitiveTexture = createButtonOutline();
 
@@ -240,6 +251,14 @@ namespace monoclock
                             alarmedToday = true;
                             delayAlarmingOnSameTime.Reset();
                             delayAlarmingOnSameTime.Start();
+                            if (isLinux)
+                            {
+                                StopMusicIfPlayingIfLinux();
+                            }
+                            else
+                            {
+                                StopMusicIfPlayingIfWindows();
+                            }
                         }
                     }
                     else
@@ -256,7 +275,7 @@ namespace monoclock
                     snoozing = true;
                     displayNowPlaying = false;
                     delayAlarmingOnSameTime.Start();
-                    snoozeAlarmTime = DateTime.Now.AddMinutes(7).ToShortTimeString();
+                    snoozeAlarmTime = DateTime.Now.AddMinutes(7).ToShortTimeString(); //7 default
                     if (isLinux)
                     {
                         StopMusicIfPlayingIfLinux();
@@ -352,7 +371,7 @@ namespace monoclock
             if (delayAlarmingOnSameTime.IsRunning)
             {
                 //2 minutes
-                if (delayAlarmingOnSameTime.ElapsedMilliseconds > 120000)
+                if (delayAlarmingOnSameTime.ElapsedMilliseconds > 120000) //120000 default
                 {
                     delayAlarmingOnSameTime.Stop();
                     delayAlarmingOnSameTime.Reset();
@@ -401,7 +420,6 @@ namespace monoclock
             if (mpg123Process.HasExited == false)
             {
                 mpg123Process.Kill();
-                mpg123Process.Dispose();
             }
         }
 
@@ -507,8 +525,6 @@ namespace monoclock
 
             return inRectangle;
         }
-
-
 
         //determines where to position centered text
         private Vector2 GetTextOffsetVector(string text, SpriteFont font)
