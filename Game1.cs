@@ -107,6 +107,7 @@ namespace monoclock
 
         protected override void LoadContent()
         {
+            Console.WriteLine("Is Linux: " + isLinux.ToString());
             spriteBatch = new SpriteBatch(GraphicsDevice);
             cancellationToken = cancellationTokenSource.Token;
 
