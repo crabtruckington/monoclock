@@ -263,6 +263,7 @@ namespace monoclock
                 //stopping alarm, cancelling snooze
                 if (MouseCursorInRectangle(currentMouseState.Position, alarmStopOutline) && (isAlarming || snoozing))
                 {
+                    Console.WriteLine("In the alarm stop method");
                     isAlarming = false;
                     alarmedToday = true;
                     displayNowPlaying = false;
@@ -271,6 +272,7 @@ namespace monoclock
                     snoozing = false;
                     delayAlarmingOnSameTime.Start();
                     snoozeAlarmTime = null;
+                    Console.WriteLine("All bools set, stopping music method");
                     StopMusicIfPlaying();
                 }
 
