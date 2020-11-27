@@ -62,7 +62,6 @@ namespace monoclock
         int lowerRowTextAlign = 333;
 
         Task setAlarmTimeTask;
-        Task alarmPlayTask;
         CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         CancellationToken cancellationToken;
 
@@ -380,12 +379,6 @@ namespace monoclock
                 if (isLinux)
                 {
                     Process mpg123kill = Process.Start("/bin/bash", " -c 'sudo pkill -f mpg123'");
-                    while (mpg123Process.HasExited == false)
-                    {
-
-                    }
-                    mpg123Process.Dispose();
-                    mpg123kill.Dispose();
                 }
                 else
                 {
