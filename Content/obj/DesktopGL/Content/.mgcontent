@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SourceFileCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Profile>Reach</Profile>
+  <Platform>DesktopGL</Platform>
+  <Config />
+  <SourceFiles>
+    <File>T:/Visual Studio Projects/monoclock/Content/belloff50x50.png</File>
+    <File>T:/Visual Studio Projects/monoclock/Content/bellon50x50.png</File>
+    <File>T:/Visual Studio Projects/monoclock/Content/clockAlarm.spritefont</File>
+    <File>T:/Visual Studio Projects/monoclock/Content/clockAlarmItalic.spritefont</File>
+    <File>T:/Visual Studio Projects/monoclock/Content/clockNowPlaying.spritefont</File>
+    <File>T:/Visual Studio Projects/monoclock/Content/clockNumbers.spritefont</File>
+    <File>T:/Visual Studio Projects/monoclock/Content/hamburger50x50.png</File>
+    <File>T:/Visual Studio Projects/monoclock/Content/lcdsegmentbell50x50.png</File>
+    <File>T:/Visual Studio Projects/monoclock/Content/lcdsegmentbelloff50x50.png</File>
+  </SourceFiles>
+  <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+  </DestFiles>
+</SourceFileCollection>

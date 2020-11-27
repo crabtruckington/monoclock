@@ -1,0 +1,10 @@
+Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"T:/Visual Studio Projects/monoclock/Content/belloff50x50.png","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/belloff50x50.xnb","TextureProcessor","Texture2DContent",2632,10085,0.0887357
+"T:/Visual Studio Projects/monoclock/Content/bellon50x50.png","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/bellon50x50.xnb","TextureProcessor","Texture2DContent",1214,10085,0.0109707
+"T:/Visual Studio Projects/monoclock/Content/clockAlarm.spritefont","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/clockAlarm.xnb","FontDescriptionProcessor","SpriteFontContent",2010,136209,0.1346389
+"T:/Visual Studio Projects/monoclock/Content/clockAlarmItalic.spritefont","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/clockAlarmItalic.xnb","FontDescriptionProcessor","SpriteFontContent",2011,136209,0.0299203
+"T:/Visual Studio Projects/monoclock/Content/clockNowPlaying.spritefont","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/clockNowPlaying.xnb","FontDescriptionProcessor","SpriteFontContent",2011,37905,0.0339093
+"T:/Visual Studio Projects/monoclock/Content/clockNumbers.spritefont","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/clockNumbers.xnb","FontDescriptionProcessor","SpriteFontContent",2012,2102289,0.1496104
+"T:/Visual Studio Projects/monoclock/Content/hamburger50x50.png","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/hamburger50x50.xnb","TextureProcessor","Texture2DContent",419,10085,0.0099741
+"T:/Visual Studio Projects/monoclock/Content/lcdsegmentbell50x50.png","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/lcdsegmentbell50x50.xnb","TextureProcessor","Texture2DContent",918,10085,0.0090023
+"T:/Visual Studio Projects/monoclock/Content/lcdsegmentbelloff50x50.png","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/lcdsegmentbelloff50x50.xnb","TextureProcessor","Texture2DContent",1221,10085,0.0089725

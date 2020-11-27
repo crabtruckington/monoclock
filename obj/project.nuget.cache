@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "T5F4zgpmhUq1DZv2rDVJmwwycyklQLJsD0HpdeDk4svW/Ckvla+0s7M+8m1xnysdpfpZhDV2ZKP6rtK8MIkixA==",
+  "success": true,
+  "projectFilePath": "T:\\Visual Studio Projects\\monoclock\\monoclock.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Jeff\\.nuget\\packages\\monogame.content.builder.task\\3.8.0.1641\\monogame.content.builder.task.3.8.0.1641.nupkg.sha512",
+    "C:\\Users\\Jeff\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.0.1641\\monogame.framework.desktopgl.3.8.0.1641.nupkg.sha512"
+  ],
+  "logs": []
+}

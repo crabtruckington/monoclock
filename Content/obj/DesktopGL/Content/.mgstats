@@ -1,0 +1,10 @@
+Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"T:/Visual Studio Projects/monoclock/Content/belloff50x50.png","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/Content/belloff50x50.xnb","TextureProcessor","Texture2DContent",2632,10085,0.1211329
+"T:/Visual Studio Projects/monoclock/Content/bellon50x50.png","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/Content/bellon50x50.xnb","TextureProcessor","Texture2DContent",1214,10085,0.0011644
+"T:/Visual Studio Projects/monoclock/Content/clockAlarm.spritefont","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/Content/clockAlarm.xnb","FontDescriptionProcessor","SpriteFontContent",2010,136226,0.181196
+"T:/Visual Studio Projects/monoclock/Content/clockAlarmItalic.spritefont","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/Content/clockAlarmItalic.xnb","FontDescriptionProcessor","SpriteFontContent",2011,136226,0.0188288
+"T:/Visual Studio Projects/monoclock/Content/clockNowPlaying.spritefont","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/Content/clockNowPlaying.xnb","FontDescriptionProcessor","SpriteFontContent",2011,37922,0.0108875
+"T:/Visual Studio Projects/monoclock/Content/clockNumbers.spritefont","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/Content/clockNumbers.xnb","FontDescriptionProcessor","SpriteFontContent",2012,2102306,0.3085083
+"T:/Visual Studio Projects/monoclock/Content/hamburger50x50.png","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/Content/hamburger50x50.xnb","TextureProcessor","Texture2DContent",419,10085,0.1070844
+"T:/Visual Studio Projects/monoclock/Content/lcdsegmentbell50x50.png","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/Content/lcdsegmentbell50x50.xnb","TextureProcessor","Texture2DContent",918,10085,0.1106698
+"T:/Visual Studio Projects/monoclock/Content/lcdsegmentbelloff50x50.png","T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/Content/lcdsegmentbelloff50x50.xnb","TextureProcessor","Texture2DContent",1221,10085,0.1120466
