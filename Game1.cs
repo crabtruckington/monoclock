@@ -480,7 +480,7 @@ namespace monoclock
             mpg123ProcessInfo.FileName = @"mpg123";
             mpg123ProcessInfo.Arguments = "";
             mpg123ProcessInfo.CreateNoWindow = true;
-            mpg123ProcessInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            //mpg123ProcessInfo.WindowStyle = ProcessWindowStyle.Hidden;
             Process mpg123Process = Process.Start(mpg123ProcessInfo);
             int totalSongs = musicToPlay.Length;
             int currentSong = 0;
