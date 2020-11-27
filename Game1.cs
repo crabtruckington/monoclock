@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
@@ -18,6 +19,8 @@ namespace monoclock
         private SpriteFont nowPlayingFont;
         private SpriteFont snoozeRegularFont;
         private SpriteFont alarmSetButtonsFont;
+
+        bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
         bool alarmEnabled = true;
         bool isAlarming = false;
@@ -368,6 +371,29 @@ namespace monoclock
             base.Update(gameTime);
         }
 
+        //cancels music if alarm is supposed to be stopping
+        private void StopMusicIfPlaying()
+        {
+            if (mpg123Process.HasExited == false)
+            {
+                if (isLinux)
+                {
+                    Process mpg123kill = Process.Start("/bin/bash", " -c 'sudo pkill -f mpg123'");
+                    while (mpg123Process.HasExited == false)
+                    {
+
+                    }
+                    mpg123Process.Dispose();
+                    mpg123kill.Dispose();
+                }
+                else
+                {
+                    mpg123Process.Kill();
+                    mpg123Process.Dispose();
+                }                
+            }
+        }
+
         protected override void Draw(GameTime gameTime)
         {
             string displayTime;
@@ -471,15 +497,7 @@ namespace monoclock
             return inRectangle;
         }
 
-        //cancels music if alarm is supposed to be stopping
-        private void StopMusicIfPlaying()
-        {
-            if (mpg123Process.HasExited == false)
-            {
-                mpg123Process.Kill();
-                mpg123Process.Dispose();
-            }
-        }
+
 
         //determines where to position centered text
         private Vector2 GetTextOffsetVector(string text, SpriteFont font)
