@@ -139,6 +139,7 @@ namespace monoclock
 
             if (currentMouseState.LeftButton == ButtonState.Pressed && lastMouseState.LeftButton == ButtonState.Released)
             {
+                Console.WriteLine("Mouse button pressed");
                 if (MouseCursorInRectangle(currentMouseState.Position, alarmPlusOutline))
                 {
                     if (clockRestartTimer.IsRunning)
@@ -247,6 +248,7 @@ namespace monoclock
 
             if (currentMouseState.LeftButton == ButtonState.Released && lastMouseState.LeftButton == ButtonState.Pressed)
             {
+                Console.WriteLine("Mouse button released");
                 if (settingAlarm)
                 {
                     settingAlarm = false;
@@ -473,15 +475,19 @@ namespace monoclock
 
 
         private void PlayAlarm()
-        {            
+        {
+            Console.WriteLine("In alarm thread");
             GetSongsInMusicFolder();
+            Console.WriteLine("got music");
             ProcessStartInfo mpg123ProcessInfo = new ProcessStartInfo();
             //mpg123ProcessInfo.FileName = @"T:\mpg123\mpg123.exe";
             mpg123ProcessInfo.FileName = @"mpg123";
             mpg123ProcessInfo.Arguments = "";
             mpg123ProcessInfo.CreateNoWindow = true;
             //mpg123ProcessInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            Console.WriteLine("process built");
             Process mpg123Process = Process.Start(mpg123ProcessInfo);
+            Console.WriteLine("process init'd");
             int totalSongs = musicToPlay.Length;
             int currentSong = 0;
 
@@ -489,6 +495,7 @@ namespace monoclock
             {
                 if (mpg123Process == null || mpg123Process.HasExited)
                 {
+                    Console.WriteLine("playing music");
                     string currentSongPathArgument = "\"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
                     nowPlayingText = "Now Playing: " + Path.GetFileName(musicToPlay[currentSong]);
                     mpg123ProcessInfo.Arguments = currentSongPathArgument;
@@ -504,6 +511,8 @@ namespace monoclock
                     }
                 }
             } while (isAlarming);
+
+            Console.WriteLine("finished playing music");
 
             if (mpg123Process.HasExited == false)
             {
