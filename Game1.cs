@@ -374,14 +374,19 @@ namespace monoclock
         //cancels music if alarm is supposed to be stopping
         private void StopMusicIfPlaying()
         {
+            Console.WriteLine("We are stopping the music");
             if (mpg123Process.HasExited == false)
             {
+                Console.WriteLine("mpg123 is running");
                 if (isLinux)
                 {
+                    Console.WriteLine("this is linux");
                     Process mpg123kill = Process.Start("/bin/bash", " -c 'sudo pkill -f mpg123'");
+                    Console.WriteLine("pkill issued");
                 }
                 else
                 {
+                    Console.WriteLine("we should never get here");
                     mpg123Process.Kill();
                     mpg123Process.Dispose();
                 }                
