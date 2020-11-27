@@ -41,3 +41,4 @@ T:\Visual Studio Projects\monoclock\obj\Release\netcoreapp3.1\monoclock.dll
 T:\Visual Studio Projects\monoclock\obj\Release\netcoreapp3.1\monoclock.pdb
 T:\Visual Studio Projects\monoclock\obj\Release\netcoreapp3.1\monoclock.genruntimeconfig.cache
 T:\Visual Studio Projects\monoclock\bin\Release\netcoreapp3.1\clockface.ini
+T:\Visual Studio Projects\monoclock\bin\Release\netcoreapp3.1\monoclockstart.sh
