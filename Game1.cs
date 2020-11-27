@@ -18,13 +18,13 @@ namespace monoclock
         private SpriteFont snoozeRegularFont;
         private SpriteFont snoozeItalicFont;
         private SpriteFont alarmSetButtonsFont;
-        
+
+        bool alarmEnabled = true;
         bool isAlarming = false;
-        bool alarmEnabled = false;
         bool settingAlarm = false;
-        bool displaySnooze = true;
+        bool displaySnooze = false;
         bool snoozing = false;
-        bool displayNowPlaying = true;
+        bool displayNowPlaying = false;
         bool displayAlarmTime = false;
         bool alarmedToday = false;
 
@@ -173,7 +173,25 @@ namespace monoclock
 
                 if (MouseCursorInRectangle(currentMouseState.Position, alarmBellOutline))
                 {
-                    alarmEnabled = !alarmEnabled;
+                    if (alarmEnabled == true)
+                    {
+                        alarmEnabled = false;
+                        if (snoozing == true || isAlarming == true)
+                        {
+                            snoozeAlarmTime = null;
+                            snoozing = false;
+                            displaySnooze = false;
+                            isAlarming = false;
+                            displayNowPlaying = false;
+                            alarmedToday = true;
+                            delayAlarmingOnSameTime.Reset();
+                            delayAlarmingOnSameTime.Start();
+                        }
+                    }
+                    else
+                    {
+                        alarmEnabled = true;
+                    }
                 }
 
                 if (MouseCursorInRectangle(currentMouseState.Position, snoozeOutline) && isAlarming)
@@ -183,7 +201,7 @@ namespace monoclock
                     snoozing = true;
                     displayNowPlaying = false;
                     delayAlarmingOnSameTime.Start();
-                    snoozeAlarmTime = DateTime.Now.AddMinutes(10).ToShortTimeString();
+                    snoozeAlarmTime = DateTime.Now.AddMinutes(7).ToShortTimeString();
                 }
 
                 if (MouseCursorInRectangle(currentMouseState.Position, alarmStopOutline) && isAlarming)
@@ -221,8 +239,8 @@ namespace monoclock
                 WriteNewAlarmTimeToFile();
             }
 
-            if ((alarmTime == DateTime.Now.ToShortTimeString() && isAlarming == false && alarmedToday == false) ||
-                (snoozeAlarmTime == DateTime.Now.ToShortTimeString() && isAlarming == false && alarmedToday == false))
+            if ((alarmTime == DateTime.Now.ToShortTimeString() && isAlarming == false && alarmedToday == false && alarmEnabled == true) ||
+                (snoozeAlarmTime == DateTime.Now.ToShortTimeString() && isAlarming == false && alarmedToday == false && alarmEnabled == true))
             {
                 isAlarming = true;
                 displayNowPlaying = true;
@@ -273,12 +291,12 @@ namespace monoclock
             spriteBatch.Begin();
 
 
-            spriteBatch.Draw(primitiveTexture, alarmBellOutline, clockButtonOutlineColor);
-            spriteBatch.Draw(primitiveTexture, alarmMinusOutline, clockButtonOutlineColor);
-            spriteBatch.Draw(primitiveTexture, alarmPlusOutline, clockButtonOutlineColor);
-            spriteBatch.Draw(primitiveTexture, snoozeOutline, clockButtonOutlineColor);
-            spriteBatch.Draw(primitiveTexture, hamburgerOutline, clockButtonOutlineColor);
-            spriteBatch.Draw(primitiveTexture, alarmStopOutline, clockButtonOutlineColor);
+            //spriteBatch.Draw(primitiveTexture, alarmBellOutline, clockButtonOutlineColor);
+            //spriteBatch.Draw(primitiveTexture, alarmMinusOutline, clockButtonOutlineColor);
+            //spriteBatch.Draw(primitiveTexture, alarmPlusOutline, clockButtonOutlineColor);
+            //spriteBatch.Draw(primitiveTexture, snoozeOutline, clockButtonOutlineColor);
+            //spriteBatch.Draw(primitiveTexture, hamburgerOutline, clockButtonOutlineColor);
+            //spriteBatch.Draw(primitiveTexture, alarmStopOutline, clockButtonOutlineColor);
 
 
             //draw clock numbers
@@ -305,14 +323,14 @@ namespace monoclock
                 if (snoozing)
                 {
                     Vector2 snoozeDisplayOffset = GetTextOffsetVector("SNOOZING", snoozeRegularFont);
-                    Vector2 snoozeDisplayPosition = new Vector2(screenCenterVector.X - snoozeDisplayOffset.X, 335);
-                    spriteBatch.DrawString(snoozeRegularFont, "SNOOZING", new Vector2(300, lowerRowTextAlign), clockFaceDisabledColor);
+                    Vector2 snoozeDisplayPosition = new Vector2(screenCenterVector.X - snoozeDisplayOffset.X, lowerRowTextAlign);
+                    spriteBatch.DrawString(snoozeRegularFont, "SNOOZING", snoozeDisplayPosition, clockFaceDisabledColor);
                 }
                 else
                 {
                     Vector2 snoozeDisplayOffset = GetTextOffsetVector("SNOOZE", snoozeRegularFont);
-                    Vector2 snoozeDisplayPosition = new Vector2(screenCenterVector.X - snoozeDisplayOffset.X, 335);
-                    spriteBatch.DrawString(snoozeRegularFont, "SNOOZE", new Vector2(300, lowerRowTextAlign), clockFaceColor);
+                    Vector2 snoozeDisplayPosition = new Vector2(screenCenterVector.X - snoozeDisplayOffset.X, lowerRowTextAlign);
+                    spriteBatch.DrawString(snoozeRegularFont, "SNOOZE", snoozeDisplayPosition, clockFaceColor);
                 }
             }
 
@@ -322,7 +340,7 @@ namespace monoclock
             }
             else
             {
-                spriteBatch.Draw(alarmDisabledIcon, new Vector2(screenSize.X - 60, screenSize.Y - 60), clockFaceColor);
+                spriteBatch.Draw(alarmDisabledIcon, new Vector2(screenSize.X - 60, screenSize.Y - 60), Color.Red);
             }
 
             spriteBatch.Draw(hamburgerMenuIcon, new Vector2(screenSize.X - 60, 10), clockFaceColor);
@@ -421,21 +439,26 @@ namespace monoclock
 
 
         private void PlayAlarm()
-        {
-            
+        {            
             GetSongsInMusicFolder();
-            Uri test = new Uri(Path.GetFullPath(musicToPlay[0]), UriKind.Relative);
-            Song song = Song.FromUri("test", test); ;
+            ProcessStartInfo mpg123ProcessInfo = new ProcessStartInfo();
+            mpg123ProcessInfo.FileName = @"T:\mpg123\mpg123.exe";
+            mpg123ProcessInfo.Arguments = "";
+            mpg123ProcessInfo.CreateNoWindow = true;
+            mpg123ProcessInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            Process mpg123Process = Process.Start(mpg123ProcessInfo);
             int totalSongs = musicToPlay.Length;
             int currentSong = 0;
 
             do
             {
-                //if (playingSong == null || playingSong.Finished)
-                if (true)
+                if (mpg123Process == null || mpg123Process.HasExited)
                 {
-                    string nowPlaying = "Now Playing: " + Path.GetFileName(musicToPlay[currentSong]);
-                    //playingSong = engine.Play2D(musicToPlay[currentSong]);
+                    string currentSongPathArgument = "\"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
+                    nowPlayingText = "Now Playing: " + Path.GetFileName(musicToPlay[currentSong]);
+                    mpg123ProcessInfo.Arguments = currentSongPathArgument;
+                    mpg123Process = Process.Start(mpg123ProcessInfo);
+                    
                     if (currentSong < totalSongs - 1)
                     {
                         currentSong += 1;
@@ -447,10 +470,11 @@ namespace monoclock
                 }
             } while (isAlarming);
 
-            //if (playingSong != null)
-            //{
-            //    playingSong.Stop();
-            //}
+            if (mpg123Process.HasExited == false)
+            {
+                mpg123Process.Kill();
+            }
+            mpg123Process.Dispose();
 
         }
     }
