@@ -257,7 +257,14 @@ namespace monoclock
                     displayNowPlaying = false;
                     delayAlarmingOnSameTime.Start();
                     snoozeAlarmTime = DateTime.Now.AddMinutes(7).ToShortTimeString();
-                    StopMusicIfPlaying();
+                    if (isLinux)
+                    {
+                        StopMusicIfPlayingIfLinux();
+                    }
+                    else
+                    {
+                        StopMusicIfPlayingIfWindows();
+                    }
                 }
 
                 //stopping alarm, cancelling snooze
@@ -273,7 +280,14 @@ namespace monoclock
                     delayAlarmingOnSameTime.Start();
                     snoozeAlarmTime = null;
                     Console.WriteLine("All bools set, stopping music method");
-                    StopMusicIfPlaying();
+                    if (isLinux)
+                    {
+                        StopMusicIfPlayingIfLinux();
+                    }
+                    else
+                    {
+                        StopMusicIfPlayingIfWindows();
+                    }
                 }
 
                 //changing clockface colors
@@ -374,24 +388,20 @@ namespace monoclock
         }
 
         //cancels music if alarm is supposed to be stopping
-        private void StopMusicIfPlaying()
+        private void StopMusicIfPlayingIfLinux()
         {
-            Console.WriteLine("We are stopping the music");
             if (mpg123Process.HasExited == false)
             {
-                Console.WriteLine("mpg123 is running");
-                if (isLinux)
-                {
-                    Console.WriteLine("this is linux");
-                    Process mpg123kill = Process.Start("/bin/bash", " -c 'sudo pkill -f mpg123'");
-                    Console.WriteLine("pkill issued");
-                }
-                else
-                {
-                    //Console.WriteLine("we should never get here");
-                    //mpg123Process.Kill();
-                    //mpg123Process.Dispose();
-                }                
+                Process mpg123kill = Process.Start("/bin/bash", " -c 'pkill -f mpg123'");
+            }
+        }
+
+        private void StopMusicIfPlayingIfWindows()
+        {
+            if (mpg123Process.HasExited == false)
+            {
+                mpg123Process.Kill();
+                mpg123Process.Dispose();
             }
         }
 

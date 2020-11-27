@@ -43,5 +43,4 @@ T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\ds_digital\D
 T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\commodoreAngled.xnb
 T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\commodoreAngledNormal.xnb
 T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\commodoreAngledNowPlaying.xnb
-T:\Visual Studio Projects\monoclock\obj\Debug\netcoreapp3.1\monoclock.csprojAssemblyReference.cache
 T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\clockface.ini
