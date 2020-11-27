@@ -110,7 +110,15 @@ namespace monoclock
             //limit to 20fps
             IsFixedTimeStep = true;
             TargetElapsedTime = TimeSpan.FromSeconds(1 / 20.0f);
-         
+            
+            if (isLinux)
+            {
+                IsMouseVisible = false;
+                Process fixPA = Process.Start("/bin/bash", "pactl load-module module-alsa-sink device='hw:0,0'");
+                fixPA.WaitForExit();
+                fixPA = Process.Start("/bin/bash", "pactl set-default-sink alsa_output.hw_0_0");
+                fixPA.WaitForExit();
+            }
             base.Initialize();
         }
 
