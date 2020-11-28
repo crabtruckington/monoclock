@@ -34,6 +34,7 @@ namespace monoclock
         string alarmFile = "./alarm.ini";
         string alarmTime = "";
         string clockFaceColorFile = "./clockface.ini";
+        string alarmStatusFile = "./alarmstatus.ini";
         string nowPlayingText = "";
         string[] musicToPlay = new string[0];
         DateTime snoozeAlarmTime = DateTime.MaxValue;
@@ -159,6 +160,7 @@ namespace monoclock
             GetSongsInMusicFolder();
             SetupClockFaceColorsLists();
             clockFaceColorIndex = GetClockFaceColorFromFile();
+            alarmEnabled = GetAlarmStatusFromFile();
             if (clockFaceColorIndex >= clockFaceColorsList.Count)
             {
                 clockFaceColorIndex = 0;
@@ -285,10 +287,12 @@ namespace monoclock
                                 StopMusicIfPlayingIfWindows();
                             }
                         }
+                        WriteAlarmStatusToFile();
                     }
                     else
                     {
                         alarmEnabled = true;
+                        WriteAlarmStatusToFile();
                     }
                 }
 
@@ -331,6 +335,18 @@ namespace monoclock
                     {
                         StopMusicIfPlayingIfWindows();
                     }
+                }
+
+                //display the alarm time without changing it
+                if (MouseCursorInRectangle(currentMouseState.Position, alarmStopOutline) && (!isAlarming || !snoozing))
+                {
+                    if (clockRestartTimer.IsRunning)
+                    {
+                        clockRestartTimer.Stop();
+                        clockRestartTimer.Reset();
+                    }
+                    displayAlarmTime = true;
+                    clockRestartTimer.Start();
                 }
 
                 //changing clockface colors
@@ -436,6 +452,9 @@ namespace monoclock
         {
             string displayTime;
             string displayDate = "";
+            string displayAlarmText = "";
+            Vector2 displayAlarmTextOffsetVector = new Vector2(0, 0);
+            Vector2 displayAlarmTextPosition = new Vector2(0, 0);
             GraphicsDevice.Clear(Color.Black);
                         
             spriteBatch.Begin();
@@ -453,6 +472,9 @@ namespace monoclock
             if (displayAlarmTime)
             {
                 displayTime = alarmTime;
+                displayAlarmText = "Alarm";
+                displayAlarmTextOffsetVector = GetTextOffsetVector(displayAlarmText, nowPlayingFont);
+                displayAlarmTextPosition = new Vector2(screenCenterVector.X - displayAlarmTextOffsetVector.X, 117);
             }
             else
             {
@@ -465,6 +487,7 @@ namespace monoclock
             Vector2 clockDateDisplayOffsetVector = GetTextOffsetVector(displayDate, nowPlayingFont);
             Vector2 clockDateDisplayPosition = new Vector2(screenCenterVector.X - clockDateDisplayOffsetVector.X, 305);
             spriteBatch.DrawString(nowPlayingFont, displayDate, clockDateDisplayPosition, clockFaceColor);
+            spriteBatch.DrawString(nowPlayingFont, displayAlarmText, displayAlarmTextPosition, clockFaceColor);
             
 
             //draw alarm set numbers
@@ -637,6 +660,26 @@ namespace monoclock
         private void WriteClockFaceColorToFile()
         {
             File.WriteAllText(clockFaceColorFile, clockFaceColorIndex.ToString());
+        }
+
+        private bool GetAlarmStatusFromFile()
+        {
+            int alarmStatusFromFile = 1;
+            if (File.Exists(alarmStatusFile))
+            {
+                if (int.TryParse(File.ReadAllText(alarmStatusFile), out alarmStatusFromFile));
+            }
+            else
+            {
+                File.WriteAllText(alarmStatusFile, alarmStatusFromFile.ToString());
+            }
+            return Convert.ToBoolean(alarmStatusFromFile);
+        }
+
+        //writes the clock face color to the color file
+        private void WriteAlarmStatusToFile()
+        {
+            File.WriteAllText(alarmStatusFile, (Convert.ToInt32(alarmEnabled)).ToString());
         }
 
         //find the songs we are supposed to play
