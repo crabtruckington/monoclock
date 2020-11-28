@@ -42,3 +42,7 @@ T:\Visual Studio Projects\monoclock\obj\Release\netcoreapp3.1\monoclock.pdb
 T:\Visual Studio Projects\monoclock\obj\Release\netcoreapp3.1\monoclock.genruntimeconfig.cache
 T:\Visual Studio Projects\monoclock\bin\Release\netcoreapp3.1\clockface.ini
 T:\Visual Studio Projects\monoclock\bin\Release\netcoreapp3.1\monoclockstart.sh
+T:\Visual Studio Projects\monoclock\bin\Release\netcoreapp3.1\Content\lcdsegmentmusicnote50x50.xnb
+T:\Visual Studio Projects\monoclock\bin\Release\netcoreapp3.1\Content\music\0002942.mp3
+T:\Visual Studio Projects\monoclock\bin\Release\netcoreapp3.1\Content\music\0010744.mp3
+T:\Visual Studio Projects\monoclock\bin\Release\netcoreapp3.1\Content\music\0011236.mp3

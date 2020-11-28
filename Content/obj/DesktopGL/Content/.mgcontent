@@ -16,8 +16,10 @@
     <File>T:/Visual Studio Projects/monoclock/Content/hamburger50x50.png</File>
     <File>T:/Visual Studio Projects/monoclock/Content/lcdsegmentbell50x50.png</File>
     <File>T:/Visual Studio Projects/monoclock/Content/lcdsegmentbelloff50x50.png</File>
+    <File>T:/Visual Studio Projects/monoclock/Content/lcdsegmentmusicnote50x50.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

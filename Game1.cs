@@ -49,12 +49,14 @@ namespace monoclock
         Texture2D alarmEnabledIcon;
         Texture2D alarmDisabledIcon;
         Texture2D hamburgerMenuIcon;
+        Texture2D musicNoteIcon;
         Texture2D primitiveTexture;
         Rectangle alarmMinusOutline;
         Rectangle alarmPlusOutline;
         Rectangle snoozeOutline;
         Rectangle alarmBellOutline;
         Rectangle hamburgerOutline;
+        Rectangle alarmTestOutline;
         Rectangle alarmStopOutline;
 
         Vector2 screenSize = new Vector2();
@@ -139,6 +141,7 @@ namespace monoclock
             alarmEnabledIcon = Content.Load<Texture2D>("lcdsegmentbell50x50");
             alarmDisabledIcon = Content.Load<Texture2D>("lcdsegmentbelloff50x50");
             hamburgerMenuIcon = Content.Load<Texture2D>("hamburger50x50");
+            musicNoteIcon = Content.Load<Texture2D>("lcdsegmentmusicnote50x50");
 
             int bottomScreenOffset = GraphicsDevice.Viewport.Height - 60;
             alarmMinusOutline = new Rectangle(5, bottomScreenOffset, 50, 50);
@@ -146,6 +149,7 @@ namespace monoclock
             snoozeOutline = new Rectangle(120, bottomScreenOffset, 600, 50);
             alarmBellOutline = new Rectangle(740, bottomScreenOffset, 50, 50);
             hamburgerOutline = new Rectangle(740, 10, 50, 50);
+            alarmTestOutline = new Rectangle(10, 10, 50, 50);
             alarmStopOutline = new Rectangle(0, 60, graphics.GraphicsDevice.Viewport.Width, bottomScreenOffset - 60);
 
             primitiveTexture = createButtonOutline();
@@ -241,7 +245,25 @@ namespace monoclock
                     {
                         setAlarmTimeTask = Task.Run(() => { ChangeAlarmTime(-1); }, cancellationToken);
                     }
-                }                
+                }
+
+                //alarm test button
+                if (MouseCursorInRectangle(currentMouseState.Position, alarmTestOutline))
+                {
+                    if (isAlarming == false)
+                    {
+                        isAlarming = true;
+                        displayNowPlaying = true;
+                        displaySnooze = true;
+                        if (!snoozing)
+                        {
+                            currentSong = 0;
+                        }
+                        snoozing = false;
+                        GetSongsInMusicFolder();
+                        totalSongs = musicToPlay.Length;
+                    }
+                }
 
                 //toggling alarm
                 if (MouseCursorInRectangle(currentMouseState.Position, alarmBellOutline))
@@ -438,6 +460,7 @@ namespace monoclock
         protected override void Draw(GameTime gameTime)
         {
             string displayTime;
+            string displayDate = "";
             GraphicsDevice.Clear(Color.Black);
                         
             spriteBatch.Begin();
@@ -449,6 +472,7 @@ namespace monoclock
             //spriteBatch.Draw(primitiveTexture, snoozeOutline, clockButtonOutlineColor);
             //spriteBatch.Draw(primitiveTexture, hamburgerOutline, clockButtonOutlineColor);
             //spriteBatch.Draw(primitiveTexture, alarmStopOutline, clockButtonOutlineColor);
+            //spriteBatch.Draw(primitiveTexture, alarmTestOutline, clockButtonOutlineColor);
 
             //draw clock numbers
             if (displayAlarmTime)
@@ -458,11 +482,14 @@ namespace monoclock
             else
             {
                 displayTime = DateTime.Now.ToShortTimeString();
-                                
+                displayDate = DateTime.Now.ToString("dddd, MMMM dd yyyy");
             }
             Vector2 clockTimeDisplayOffsetVector = GetTextOffsetVector(displayTime, clockNumbersFont);
             Vector2 clockTimeDisplayPosition = new Vector2(screenCenterVector.X - clockTimeDisplayOffsetVector.X, screenCenterVector.Y - clockTimeDisplayOffsetVector.Y - 20);
             spriteBatch.DrawString(clockNumbersFont, displayTime, clockTimeDisplayPosition, clockFaceColor);
+            Vector2 clockDateDisplayOffsetVector = GetTextOffsetVector(displayDate, nowPlayingFont);
+            Vector2 clockDateDisplayPosition = new Vector2(screenCenterVector.X - clockDateDisplayOffsetVector.X, 305);
+            spriteBatch.DrawString(nowPlayingFont, displayDate, clockDateDisplayPosition, clockFaceColor);
             
 
             //draw alarm set numbers
@@ -510,6 +537,9 @@ namespace monoclock
 
             //drawn hamburger menu
             spriteBatch.Draw(hamburgerMenuIcon, new Vector2(screenSize.X - 60, 10), clockFaceColor);
+
+            //draw alarmTest icon
+            spriteBatch.Draw(musicNoteIcon, new Vector2(10, 10), clockFaceColor);
 
             //draw now playing text
             if (displayNowPlaying)
