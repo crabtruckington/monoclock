@@ -3,7 +3,7 @@
 
 monoclock is an alarm clock program that is capable of playing audio files, including MP3's, written in C# using the Monogame framework for display.
 
-The intended target is a Raspberry Pi, but it can be run on any computer that can run the .NET Core and has a display. It uses about 77Mb of ram, and 80Mb when playing an audio file.
+The intended target is a Raspberry Pi, but it can be run on any computer that can run the .NET Core runtime and has a display. It uses about 77Mb of ram, and 80Mb when playing an audio file.
 
 You will need at least `.NET Core 3.1` and the `mono-complete` framework (`Monogame` on windows), and `mpg123` for playing back audio files. You can change the default player in the code. It is also highly recommended that you download `PulseAudio` on linux as well if you are using a raspberry pi, as you will be able to fix the poor sound playback it has by default (this is done automatically when the program starts). 
 
