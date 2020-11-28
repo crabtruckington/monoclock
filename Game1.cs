@@ -34,9 +34,9 @@ namespace monoclock
         string alarmFile = "./alarm.ini";
         string alarmTime = "";
         string clockFaceColorFile = "./clockface.ini";
-        string snoozeAlarmTime = null;
         string nowPlayingText = "";
         string[] musicToPlay = new string[0];
+        DateTime snoozeAlarmTime = DateTime.MaxValue;
 
         Color clockFaceColor = Color.White;
         Color clockFaceDisabledColor = Color.Gray;
@@ -70,8 +70,7 @@ namespace monoclock
         Stopwatch clockRestartTimer = new Stopwatch();
         Stopwatch delayAlarmingOnSameTime = new Stopwatch();
         Stopwatch clockFaceSaveTimer = new Stopwatch();
-        Stopwatch clockFlashTimer = new Stopwatch();
-
+        
         MouseState currentMouseState = Mouse.GetState();
         MouseState lastMouseState = Mouse.GetState();
 
@@ -111,7 +110,7 @@ namespace monoclock
         {
             //limit to 20fps
             IsFixedTimeStep = true;
-            TargetElapsedTime = TimeSpan.FromSeconds(1 / 20.0f);
+            TargetElapsedTime = TimeSpan.FromSeconds(1 / 10.0f);
             
             if (isLinux)
             {
@@ -126,7 +125,6 @@ namespace monoclock
 
         protected override void LoadContent()
         {
-            Console.WriteLine("Is Linux: " + isLinux.ToString());
             spriteBatch = new SpriteBatch(GraphicsDevice);
             cancellationToken = cancellationTokenSource.Token;
 
@@ -167,8 +165,7 @@ namespace monoclock
             }
             clockFaceColor = clockFaceColorsList[clockFaceColorIndex];
             clockFaceDisabledColor = clockFaceDisabledColorsList[clockFaceColorIndex];
-            clockFlashTimer.Start();
-
+            
             mpg123ProcessInfo.FileName = @"mpg123";
             mpg123ProcessInfo.Arguments = "";
             mpg123ProcessInfo.CreateNoWindow = true;
@@ -204,7 +201,6 @@ namespace monoclock
                         if (setAlarmTimeTask.IsCompleted == false)
                         {
                             cancellationTokenSource.Cancel();
-                            //setAlarmTimeTask.Wait();
                             setAlarmTimeTask = Task.Run(() => { ChangeAlarmTime(1); }, cancellationToken);
                         }
                         else
@@ -233,7 +229,6 @@ namespace monoclock
                         if (setAlarmTimeTask.IsCompleted == false)
                         {
                             cancellationTokenSource.Cancel();
-                            //setAlarmTimeTask.Wait();
                             setAlarmTimeTask = Task.Run(() => { ChangeAlarmTime(-1); }, cancellationToken);
                         }
                         else
@@ -273,7 +268,7 @@ namespace monoclock
                         alarmEnabled = false;
                         if (snoozing == true || isAlarming == true)
                         {
-                            snoozeAlarmTime = null;
+                            snoozeAlarmTime = DateTime.MaxValue;
                             snoozing = false;
                             displaySnooze = false;
                             isAlarming = false;
@@ -305,7 +300,8 @@ namespace monoclock
                     snoozing = true;
                     displayNowPlaying = false;
                     delayAlarmingOnSameTime.Start();
-                    snoozeAlarmTime = DateTime.Now.AddMinutes(7).ToShortTimeString(); //7 default
+                    snoozeAlarmTime = DateTime.Now.AddMinutes(7); //7 default
+                    snoozeAlarmTime = snoozeAlarmTime.AddMilliseconds(1000 - snoozeAlarmTime.Millisecond);
                     if (isLinux)
                     {
                         StopMusicIfPlayingIfLinux();
@@ -319,7 +315,6 @@ namespace monoclock
                 //stopping alarm, cancelling snooze
                 if (MouseCursorInRectangle(currentMouseState.Position, alarmStopOutline) && (isAlarming || snoozing))
                 {
-                    Console.WriteLine("In the alarm stop method");
                     isAlarming = false;
                     alarmedToday = true;
                     displayNowPlaying = false;
@@ -327,8 +322,7 @@ namespace monoclock
                     displaySnooze = false;
                     snoozing = false;
                     delayAlarmingOnSameTime.Start();
-                    snoozeAlarmTime = null;
-                    Console.WriteLine("All bools set, stopping music method");
+                    snoozeAlarmTime = DateTime.MaxValue;
                     if (isLinux)
                     {
                         StopMusicIfPlayingIfLinux();
@@ -358,7 +352,6 @@ namespace monoclock
             //releasing mouse button
             if (currentMouseState.LeftButton == ButtonState.Released && lastMouseState.LeftButton == ButtonState.Pressed)
             {
-                Console.WriteLine("Mouse button released");
                 if (settingAlarm)
                 {
                     settingAlarm = false;
@@ -387,7 +380,7 @@ namespace monoclock
 
             //start alarming
             if ((alarmTime == DateTime.Now.ToShortTimeString() && isAlarming == false && alarmedToday == false && alarmEnabled == true) ||
-                (snoozeAlarmTime == DateTime.Now.ToShortTimeString() && isAlarming == false && alarmedToday == false && alarmEnabled == true))
+                (snoozeAlarmTime <= DateTime.Now && isAlarming == false && alarmedToday == false && alarmEnabled == true))
             {
                 isAlarming = true;
                 displayNowPlaying = true;
@@ -418,7 +411,6 @@ namespace monoclock
             {
                 if (mpg123Process == null || mpg123Process.HasExited)
                 {
-                    Console.WriteLine("playing music");
                     string currentSongPathArgument = "\"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
                     nowPlayingText = "Now Playing: " + Path.GetFileName(musicToPlay[currentSong]);
                     mpg123ProcessInfo.Arguments = currentSongPathArgument;
@@ -438,23 +430,6 @@ namespace monoclock
             lastMouseState = currentMouseState;
             
             base.Update(gameTime);
-        }
-
-        //cancels music if alarm is supposed to be stopping
-        private void StopMusicIfPlayingIfLinux()
-        {
-            if (mpg123Process.HasExited == false)
-            {
-                Process mpg123kill = Process.Start("/bin/bash", " -c 'pkill -f mpg123'");
-            }
-        }
-
-        private void StopMusicIfPlayingIfWindows()
-        {
-            if (mpg123Process.HasExited == false)
-            {
-                mpg123Process.Kill();
-            }
         }
 
         protected override void Draw(GameTime gameTime)
@@ -501,21 +476,17 @@ namespace monoclock
             {
                 if (snoozing)
                 {
-                    if (clockFlashTimer.ElapsedMilliseconds < 1000)
+                    DateTime now = DateTime.Now;
+                    TimeSpan snoozeTimeLeft = snoozeAlarmTime - now;
+                    DateTime snoozeTimeLeftmmss = DateTime.MinValue.AddMinutes(snoozeTimeLeft.Minutes).AddSeconds(snoozeTimeLeft.Seconds);
+                    string snoozeTimeLeftDisplay = snoozeTimeLeftmmss.ToString("mm:ss");
+                    //flash snoozing every 1 second
+                    if (now.Second % 2 == 0)
                     {
-                        Vector2 snoozeDisplayOffset = GetTextOffsetVector("SNOOZING", snoozeRegularFont);
+                        Vector2 snoozeDisplayOffset = GetTextOffsetVector("SNOOZING " + snoozeTimeLeftDisplay, snoozeRegularFont);
                         Vector2 snoozeDisplayPosition = new Vector2(screenCenterVector.X - snoozeDisplayOffset.X, lowerRowTextAlign);
-                        spriteBatch.DrawString(snoozeRegularFont, "SNOOZING", snoozeDisplayPosition, clockFaceDisabledColor);
+                        spriteBatch.DrawString(snoozeRegularFont, "SNOOZING " + snoozeTimeLeftDisplay, snoozeDisplayPosition, clockFaceDisabledColor);
                     }
-                    else if (clockFlashTimer.ElapsedMilliseconds < 2000)
-                    {
-
-                    }
-                    else
-                    {
-                        clockFlashTimer.Restart();
-                    }
-
                 }
                 else
                 {
@@ -552,6 +523,23 @@ namespace monoclock
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        //cancels music if alarm is supposed to be stopping
+        private void StopMusicIfPlayingIfLinux()
+        {
+            if (mpg123Process.HasExited == false)
+            {
+                Process mpg123kill = Process.Start("/bin/bash", " -c 'pkill -f mpg123'");
+            }
+        }
+
+        private void StopMusicIfPlayingIfWindows()
+        {
+            if (mpg123Process.HasExited == false)
+            {
+                mpg123Process.Kill();
+            }
         }
 
         //determines if the mouse cursor is over a button
@@ -601,7 +589,7 @@ namespace monoclock
                 {
                     alarmTime = DateTime.Parse(alarmTime).AddMinutes(10 * timeModifier).ToShortTimeString();
                 }    
-                Thread.Sleep(200);
+                Thread.Sleep(250);
             }
             alarmSettingTimer.Stop();
             alarmSettingTimer.Reset();
@@ -662,17 +650,35 @@ namespace monoclock
         {
             clockFaceColorsList.Add(Color.White);
             clockFaceColorsList.Add(new Color(72, 159, 247));//light blue
+            clockFaceColorsList.Add(new Color(9, 40, 240));//dark blue
+            clockFaceColorsList.Add(new Color(21, 232, 214));//teal
+            clockFaceColorsList.Add(new Color(8, 247, 163));//blue green
+            clockFaceColorsList.Add(new Color(36, 181, 16));//dark green
             clockFaceColorsList.Add(new Color(0, 255, 4));//neon green
             clockFaceColorsList.Add(new Color(240, 130, 12));//orange
-            clockFaceColorsList.Add(new Color(179, 14, 230));//purple
             clockFaceColorsList.Add(new Color(237, 7, 30));//red
+            clockFaceColorsList.Add(new Color(240, 22, 236));//neon pink
+            clockFaceColorsList.Add(new Color(247, 151, 148));//soft pink
+            clockFaceColorsList.Add(new Color(226, 242, 3));//yellow
+            clockFaceColorsList.Add(new Color(162, 174, 224));//light purple
+            clockFaceColorsList.Add(new Color(179, 14, 230));//purple
+            clockFaceColorsList.Add(new Color(58, 28, 252));//dark purple
 
             clockFaceDisabledColorsList.Add(Color.Gray);
             clockFaceDisabledColorsList.Add(new Color(36, 81, 125));//light blue disabled
+            clockFaceDisabledColorsList.Add(new Color(20, 36, 140));//dark blue disabled
+            clockFaceDisabledColorsList.Add(new Color(13, 122, 113));//teal disabled
+            clockFaceDisabledColorsList.Add(new Color(9, 150, 101));//blue green disabled
+            clockFaceDisabledColorsList.Add(new Color(24, 120, 12));//dark green disabled
             clockFaceDisabledColorsList.Add(new Color(16, 122, 0));//neon green disabled
             clockFaceDisabledColorsList.Add(new Color(125, 67, 5));//orange disabled
-            clockFaceDisabledColorsList.Add(new Color(77, 6, 99));//purple disabled
             clockFaceDisabledColorsList.Add(new Color(128, 8, 20));//red disabled
+            clockFaceDisabledColorsList.Add(new Color(130, 26, 128));//neon pink disabled
+            clockFaceDisabledColorsList.Add(new Color(191, 103, 100));//soft pink disabled
+            clockFaceDisabledColorsList.Add(new Color(167, 176, 42));//yellow disabled
+            clockFaceDisabledColorsList.Add(new Color(116, 125, 161));//light purple disabled
+            clockFaceDisabledColorsList.Add(new Color(77, 6, 99));//purple disabled
+            clockFaceDisabledColorsList.Add(new Color(41, 21, 173));//dark purple disabled
         }
     }
 }
