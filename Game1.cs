@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,13 @@ namespace monoclock
         string alarmTime = "";
         string nowPlayingText = "";
         string[] musicToPlay = new string[0];
+        static readonly string[] fileExtensions = new string [] { "aac", "ac3", "aiff", "aix", "asf", "asf_o", "asf_stream", 
+                                                                  "avi", "avs", "bink", "bit", "cdg", "cdxl", "flac", "flic", 
+                                                                  "flv", "h261", "h263", "h264", "hevc", "m4v", "matroska", 
+                                                                  "matroska, webm", "mov", "mp4", "m4a", "3gp", "3g2", 
+                                                                  "mp2", "mp3", "mp4", "mpeg", "mpeg1video", "mpeg2video", 
+                                                                  "mpegvideo", "oga", "ogg", "ogv", "wav", "webm" };
+
         DateTime snoozeAlarmTime = DateTime.MaxValue;
 
         Color clockFaceColor = Color.White;
@@ -75,8 +83,8 @@ namespace monoclock
         MouseState currentMouseState = Mouse.GetState();
         MouseState lastMouseState = Mouse.GetState();
 
-        ProcessStartInfo mpg123ProcessInfo = new ProcessStartInfo();
-        Process mpg123Process;
+        ProcessStartInfo musicPlayerProcessInfo = new ProcessStartInfo();
+        Process musicPlayerProcess;
         int totalSongs;
         int currentSong = 0;
         string nowPlayingDisplayText;
@@ -167,16 +175,23 @@ namespace monoclock
             }
             clockFaceColor = clockFaceColorsList[clockFaceColorIndex];
             clockFaceDisabledColor = clockFaceDisabledColorsList[clockFaceColorIndex];
-            
-            mpg123ProcessInfo.FileName = @"mpg123";
-            mpg123ProcessInfo.Arguments = "";
-            mpg123ProcessInfo.CreateNoWindow = true;
+
+            if (isLinux)
+            {
+                musicPlayerProcessInfo.FileName = "mpv";
+            }
+            else
+            {
+                musicPlayerProcessInfo.FileName = @"mpg123";
+            }
+            musicPlayerProcessInfo.Arguments = "";
+            musicPlayerProcessInfo.CreateNoWindow = true;
 #if DEBUG
-            mpg123ProcessInfo.FileName = @"T:\mpg123\mpg123.exe";
-            mpg123ProcessInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            musicPlayerProcessInfo.FileName = @"T:\mpg123\mpg123.exe";
+            musicPlayerProcessInfo.WindowStyle = ProcessWindowStyle.Hidden;
 #endif
 
-            Process mpg123Process = Process.Start(mpg123ProcessInfo);
+            Process mpg123Process = Process.Start(musicPlayerProcessInfo);
         }
 
 
@@ -434,12 +449,20 @@ namespace monoclock
             //play music if we're alarming
             if (isAlarming)
             {
-                if (mpg123Process == null || mpg123Process.HasExited)
+                if (musicPlayerProcess == null || musicPlayerProcess.HasExited)
                 {
-                    string currentSongPathArgument = "\"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
+                    string currentSongPathArgument;
+                    if (isLinux)
+                    {
+                        currentSongPathArgument = "--no-video \"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
+                    }
+                    else
+                    {
+                        currentSongPathArgument = "\"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
+                    }
                     nowPlayingText = "Now Playing: " + Path.GetFileName(musicToPlay[currentSong]);
-                    mpg123ProcessInfo.Arguments = currentSongPathArgument;
-                    mpg123Process = Process.Start(mpg123ProcessInfo);
+                    musicPlayerProcessInfo.Arguments = currentSongPathArgument;
+                    musicPlayerProcess = Process.Start(musicPlayerProcessInfo);
                     NowPlayingTextOffsetCounter = 0;
                     if (nowPlayingTextScrollTimer.IsRunning)
                     {
@@ -596,17 +619,17 @@ namespace monoclock
         //cancels music if alarm is supposed to be stopping
         private void StopMusicIfPlayingIfLinux()
         {
-            if (mpg123Process.HasExited == false)
+            if (musicPlayerProcess.HasExited == false)
             {
-                Process mpg123kill = Process.Start("/bin/bash", " -c 'pkill -f mpg123'");
+                Process mpg123kill = Process.Start("/bin/bash", " -c 'pkill -f mpv'");
             }
         }
 
         private void StopMusicIfPlayingIfWindows()
         {
-            if (mpg123Process.HasExited == false)
+            if (musicPlayerProcess.HasExited == false)
             {
-                mpg123Process.Kill();
+                musicPlayerProcess.Kill();
             }
         }
 
@@ -731,7 +754,7 @@ namespace monoclock
         //find the songs we are supposed to play
         private void GetSongsInMusicFolder()
         {
-            musicToPlay = Directory.GetFiles(@"./Content/music", "*.*", SearchOption.AllDirectories);
+            musicToPlay = Directory.GetFiles(@"./Content/music", "*.*", SearchOption.AllDirectories).Where(s => fileExtensions.Any(s.EndsWith)).ToArray();
         }
 
         //list of clock face colors, manually make sure enabled/disabled colors are aligned between lists
