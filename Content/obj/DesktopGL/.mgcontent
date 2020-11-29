@@ -10,17 +10,13 @@
     <File>T:/Visual Studio Projects/monoclock/Content/clockAlarmItalic.spritefont</File>
     <File>T:/Visual Studio Projects/monoclock/Content/clockNowPlaying.spritefont</File>
     <File>T:/Visual Studio Projects/monoclock/Content/clockNumbers.spritefont</File>
-    <File>T:/Visual Studio Projects/monoclock/Content/commodoreAngled.spritefont</File>
-    <File>T:/Visual Studio Projects/monoclock/Content/commodoreAngledNormal.spritefont</File>
-    <File>T:/Visual Studio Projects/monoclock/Content/commodoreAngledNowPlaying.spritefont</File>
+    <File>T:/Visual Studio Projects/monoclock/Content/clockNumbersFixedWidth.spritefont</File>
     <File>T:/Visual Studio Projects/monoclock/Content/hamburger50x50.png</File>
     <File>T:/Visual Studio Projects/monoclock/Content/lcdsegmentbell50x50.png</File>
     <File>T:/Visual Studio Projects/monoclock/Content/lcdsegmentbelloff50x50.png</File>
     <File>T:/Visual Studio Projects/monoclock/Content/lcdsegmentmusicnote50x50.png</File>
   </SourceFiles>
   <DestFiles>
-    <File xsi:nil="true" />
-    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

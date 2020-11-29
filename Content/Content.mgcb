@@ -65,26 +65,12 @@
 /processorParam:TextureFormat=Compressed
 /build:clockNumbers.spritefont
 
-#begin commodoreAngled.spritefont
+#begin clockNumbersFixedWidth.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
-/build:commodoreAngled.spritefont
-
-#begin commodoreAngledNormal.spritefont
-/importer:FontDescriptionImporter
-/processor:FontDescriptionProcessor
-/processorParam:PremultiplyAlpha=True
-/processorParam:TextureFormat=Compressed
-/build:commodoreAngledNormal.spritefont
-
-#begin commodoreAngledNowPlaying.spritefont
-/importer:FontDescriptionImporter
-/processor:FontDescriptionProcessor
-/processorParam:PremultiplyAlpha=True
-/processorParam:TextureFormat=Compressed
-/build:commodoreAngledNowPlaying.spritefont
+/build:clockNumbersFixedWidth.spritefont
 
 #begin hamburger50x50.png
 /importer:TextureImporter

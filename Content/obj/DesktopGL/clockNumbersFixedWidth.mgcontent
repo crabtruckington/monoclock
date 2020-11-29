@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <SourceFile>T:/Visual Studio Projects/monoclock/Content/commodoreAngled.spritefont</SourceFile>
-  <SourceTime>2020-11-27T10:04:57.4294082-05:00</SourceTime>
-  <DestFile>T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/commodoreAngled.xnb</DestFile>
-  <DestTime>2020-11-28T00:13:39.5806426-05:00</DestTime>
+  <SourceFile>T:/Visual Studio Projects/monoclock/Content/clockNumbersFixedWidth.spritefont</SourceFile>
+  <SourceTime>2020-11-29T01:46:05.7340398-05:00</SourceTime>
+  <DestFile>T:/Visual Studio Projects/monoclock/Content/bin/DesktopGL/clockNumbersFixedWidth.xnb</DestFile>
+  <DestTime>2020-11-29T01:50:40.332723-05:00</DestTime>
   <Importer>FontDescriptionImporter</Importer>
   <ImporterTime>2018-12-08T11:35:54-05:00</ImporterTime>
   <Processor>FontDescriptionProcessor</Processor>

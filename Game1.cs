@@ -129,7 +129,7 @@ namespace monoclock
             spriteBatch = new SpriteBatch(GraphicsDevice);
             cancellationToken = cancellationTokenSource.Token;
 
-            clockNumbersFont = Content.Load<SpriteFont>("clockNumbers");
+            clockNumbersFont = Content.Load<SpriteFont>("clockNumbersFixedWidth");
             nowPlayingFont = Content.Load<SpriteFont>("clockNowPlaying");
             snoozeRegularFont = Content.Load<SpriteFont>("clockAlarm");
             alarmSetButtonsFont = Content.Load<SpriteFont>("clockAlarm");
@@ -362,7 +362,6 @@ namespace monoclock
                     clockFaceSaveTimer.Reset();
                     clockFaceSaveTimer.Start();
                 }
-
             }
 
             //releasing mouse button
