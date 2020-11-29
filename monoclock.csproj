@@ -76,7 +76,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Content\music\" />
-  </ItemGroup>
 </Project>
