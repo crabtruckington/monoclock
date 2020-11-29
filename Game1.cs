@@ -454,7 +454,7 @@ namespace monoclock
                     string currentSongPathArgument;
                     if (isLinux)
                     {
-                        currentSongPathArgument = "--no-video \"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
+                        currentSongPathArgument = "--no-video --really-quiet --audio-device=pulse/alsa_output.hw_0_0 \"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
                     }
                     else
                     {
