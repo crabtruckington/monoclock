@@ -41,4 +41,3 @@ T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\lcdsegmentmu
 T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\clockNumbersFixedWidth.xnb
 T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\music\0002942.mp3
 T:\Visual Studio Projects\monoclock\bin\Debug\netcoreapp3.1\Content\music\06-The World Is A Beautiful Place & I Am No Longer Afraid To Die - 'Dillon And Her Son' (360º).mp3
-T:\Visual Studio Projects\monoclock\obj\Debug\netcoreapp3.1\monoclock.csprojAssemblyReference.cache

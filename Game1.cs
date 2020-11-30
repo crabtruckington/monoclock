@@ -319,6 +319,13 @@ namespace monoclock
                     else
                     {
                         alarmEnabled = true;
+                        if (clockRestartTimer.IsRunning)
+                        {
+                            clockRestartTimer.Stop();
+                            clockRestartTimer.Reset();
+                        }
+                        displayAlarmTime = true;
+                        clockRestartTimer.Start();
                         WriteAlarmStatusToFile();
                     }
                 }
