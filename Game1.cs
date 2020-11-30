@@ -128,9 +128,7 @@ namespace monoclock
             if (isLinux)
             {
                 IsMouseVisible = false;
-                Process fixPA = Process.Start("pactl", "load-module module-alsa-sink device='hw:0,0'");
-                fixPA.WaitForExit();
-                fixPA = Process.Start("pactl", "set-default-sink alsa_output.hw_0_0");
+                Process fixPA = Process.Start("amixer", " -D pulse sset Master 100%");
                 fixPA.WaitForExit();
             }
             base.Initialize();
@@ -462,7 +460,7 @@ namespace monoclock
                     string currentSongPathArgument;
                     if (isLinux)
                     {
-                        currentSongPathArgument = "--no-video --really-quiet --audio-device=pulse/alsa_output.hw_0_0 \"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
+                        currentSongPathArgument = "--no-video --really-quiet \"" + Path.GetFullPath(musicToPlay[currentSong]) + "\"";
                     }
                     else
                     {
