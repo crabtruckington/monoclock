@@ -40,7 +40,7 @@ namespace monoclock
         static readonly string[] fileExtensions = new string [] { "aac", "ac3", "aiff", "aix", "asf", "asf_o", "asf_stream", 
                                                                   "avi", "avs", "bink", "bit", "cdg", "cdxl", "flac", "flic", 
                                                                   "flv", "h261", "h263", "h264", "hevc", "m4v", "matroska", 
-                                                                  "matroska, webm", "mov", "mp4", "m4a", "3gp", "3g2", 
+                                                                  "mov", "mp4", "m4a", "3gp", "3g2", 
                                                                   "mp2", "mp3", "mp4", "mpeg", "mpeg1video", "mpeg2video", 
                                                                   "mpegvideo", "oga", "ogg", "ogv", "wav", "webm" };
 
@@ -332,6 +332,7 @@ namespace monoclock
                     displayNowPlaying = false;
                     delayAlarmingOnSameTime.Start();
                     snoozeAlarmTime = DateTime.Now.AddMinutes(7); //7 default
+                    //we round up to the nearest second so that the flashing display aligns with the countdown seconds changing
                     snoozeAlarmTime = snoozeAlarmTime.AddMilliseconds(1000 - snoozeAlarmTime.Millisecond);
                     if (nowPlayingTextScrollTimer.IsRunning)
                     {
