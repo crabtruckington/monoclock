@@ -1,5 +1,5 @@
 # monoclock
-![Image of monoclock](https://i.imgur.com/5yyepeS.png)
+![Image of monoclock](https://i.imgur.com/iYMta3Y.png)
 
 monoclock is an alarm clock program that is capable of playing audio files, including MP3's, written in C# using the Monogame framework for display.
 
