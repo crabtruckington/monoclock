@@ -529,6 +529,10 @@ namespace monoclock
             }
             Vector2 clockTimeDisplayOffsetVector = GetTextOffsetVector(displayTime, clockNumbersFont);
             Vector2 clockTimeDisplayPosition = new Vector2(screenCenterVector.X - clockTimeDisplayOffsetVector.X, screenCenterVector.Y - clockTimeDisplayOffsetVector.Y - 20);
+            if (displayTime.StartsWith("10") || displayTime.StartsWith("11") || displayTime.StartsWith("12"))
+            {
+                clockTimeDisplayPosition.X = clockTimeDisplayPosition.X - 30;
+            }
             spriteBatch.DrawString(clockNumbersFont, displayTime, clockTimeDisplayPosition, clockFaceColor);
             Vector2 clockDateDisplayOffsetVector = GetTextOffsetVector(displayDate, nowPlayingFont);
             Vector2 clockDateDisplayPosition = new Vector2(screenCenterVector.X - clockDateDisplayOffsetVector.X, 305);
