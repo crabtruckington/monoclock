@@ -30,6 +30,7 @@ namespace monoclock
         bool displayNowPlaying = false;
         bool displayAlarmTime = false;
         bool alarmedToday = false;
+        bool randomizePlayback = true;
 
         string alarmFile = "./alarm.ini";
         string clockFaceColorFile = "./clockface.ini";
@@ -43,6 +44,7 @@ namespace monoclock
                                                                   "mov", "mp4", "m4a", "3gp", "3g2", 
                                                                   "mp2", "mp3", "mp4", "mpeg", "mpeg1video", "mpeg2video", 
                                                                   "mpegvideo", "oga", "ogg", "ogv", "wav", "webm" };
+        Random random = new Random();
 
         DateTime snoozeAlarmTime = DateTime.MaxValue;
 
@@ -354,6 +356,18 @@ namespace monoclock
                     }
                 }
 
+                //toggle randomized alarm playback
+                if (MouseCursorInRectangle(currentMouseState.Position, snoozeOutline) && displayAlarmTime && (!isAlarming & !snoozing))
+                {
+                    randomizePlayback = !randomizePlayback;
+                    if (clockRestartTimer.IsRunning)
+                    {
+                        clockRestartTimer.Stop();
+                        clockRestartTimer.Reset();
+                    }
+                    clockRestartTimer.Start();
+                }
+
                 //stopping alarm, cancelling snooze
                 if (MouseCursorInRectangle(currentMouseState.Position, alarmStopOutline) && (isAlarming || snoozing))
                 {
@@ -425,7 +439,7 @@ namespace monoclock
             }
 
             //start alarming
-            if ((alarmTime == DateTime.Now.ToShortTimeString() && isAlarming == false && alarmedToday == false && alarmEnabled == true) ||
+            if ((alarmTime == DateTime.Now.ToShortTimeString() && isAlarming == false && alarmedToday == false && alarmEnabled == true && displayAlarmTime == false) ||
                 (snoozeAlarmTime <= DateTime.Now && isAlarming == false && alarmedToday == false && alarmEnabled == true))
             {
                 isAlarming = true;
@@ -435,8 +449,15 @@ namespace monoclock
                 {
                     currentSong = 0;
                 }
-                snoozing = false;                
-                GetSongsInMusicFolder();
+                snoozing = false;
+                if (randomizePlayback)
+                {
+                    GetSongsInMusicFolder(true);
+                }
+                else
+                {
+                    GetSongsInMusicFolder();
+                }
                 totalSongs = musicToPlay.Length;
             }
 
@@ -499,6 +520,9 @@ namespace monoclock
             string displayAlarmText = "";
             Vector2 displayAlarmTextOffsetVector = new Vector2(0, 0);
             Vector2 displayAlarmTextPosition = new Vector2(0, 0);
+            string randomizeText = "Randomize";
+            Vector2 randomizeTextOffsetVector = new Vector2(0, 0);
+            Vector2 randomizeTextPosition = new Vector2(0, 0);
             GraphicsDevice.Clear(Color.Black);
                         
             spriteBatch.Begin();
@@ -519,6 +543,16 @@ namespace monoclock
                 displayAlarmText = "Alarm";
                 displayAlarmTextOffsetVector = GetTextOffsetVector(displayAlarmText, nowPlayingFont);
                 displayAlarmTextPosition = new Vector2(screenCenterVector.X - displayAlarmTextOffsetVector.X, 117);
+                randomizeTextOffsetVector = GetTextOffsetVector(randomizeText, snoozeRegularFont);
+                randomizeTextPosition = new Vector2(screenCenterVector.X - randomizeTextOffsetVector.X, lowerRowTextAlign);
+                if(randomizePlayback)
+                {
+                    spriteBatch.DrawString(snoozeRegularFont, randomizeText, randomizeTextPosition, clockFaceColor);
+                }
+                else
+                {
+                    spriteBatch.DrawString(snoozeRegularFont, randomizeText, randomizeTextPosition, clockFaceDisabledColor);
+                }
             }
             else
             {
@@ -764,7 +798,18 @@ namespace monoclock
         //find the songs we are supposed to play
         private void GetSongsInMusicFolder()
         {
-            musicToPlay = Directory.GetFiles(@"./Content/music", "*.*", SearchOption.AllDirectories).Where(s => fileExtensions.Any(s.EndsWith)).ToArray();
+            GetSongsInMusicFolder(false);
+        }
+        private void GetSongsInMusicFolder(bool randomize)
+        {            
+            if (randomize)
+            {
+                musicToPlay = Directory.GetFiles(@"./Content/music", "*.*", SearchOption.AllDirectories).Where(s => fileExtensions.Any(s.EndsWith)).OrderBy(r => random.Next()).ToArray();
+            }
+            else
+            {
+                musicToPlay = Directory.GetFiles(@"./Content/music", "*.*", SearchOption.AllDirectories).Where(s => fileExtensions.Any(s.EndsWith)).ToArray();
+            }
         }
 
         //list of clock face colors, manually make sure enabled/disabled colors are aligned between lists
