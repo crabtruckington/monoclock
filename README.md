@@ -12,7 +12,7 @@ The default target has a display of 800x480 pixels, fullscreen on linux and wind
 To start the program on linux, call it with `mono monoclock.dll` in the installation directory. On windows, simply run the `monoclock.exe` binary. Precompiled `Release` and `Debug` binaries are available in the `bin` folder if you do not want to compile it yourself.
 
 # how to use
-Set the alarm time using the `+` and `-` buttons in the bottom left. If the alarm is enabled, the alarm will sound every day at the specified time.
+Set the alarm time using the `+` and `-` buttons in the bottom left. If the alarm is enabled, the alarm will sound every day at the specified time. Pressing the `Randomize` button on the alarm screen will toggle whether or not songs should be played in a random order.
 
 Snooze the alarm by pressing the `SNOOZE` button while the alarm is sounding. The alarm will stop for 7 minutes and then resume. A countdown will be shown.
 
