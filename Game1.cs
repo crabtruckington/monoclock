@@ -168,7 +168,27 @@ namespace monoclock
             GetSongsInMusicFolder();
             SetupClockFaceColorsLists();
             clockFaceColorIndex = GetClockFaceColorFromFile();
-            alarmEnabled = GetAlarmStatusFromFile();
+            string alarmSettings = GetAlarmStatusFromFile();
+            switch (alarmSettings)
+            {
+                case "00":
+                    alarmEnabled = false;
+                    randomizePlayback = false;
+                    break;
+                case "01":
+                    alarmEnabled = false;
+                    randomizePlayback = true;
+                    break;
+                case "10":
+                    alarmEnabled = true;
+                    randomizePlayback = false;
+                    break;
+                case "11":
+                default:
+                    alarmEnabled = true;
+                    randomizePlayback = true;
+                    break;
+            }
             if (clockFaceColorIndex >= clockFaceColorsList.Count)
             {
                 clockFaceColorIndex = 0;
@@ -365,6 +385,7 @@ namespace monoclock
                         clockRestartTimer.Stop();
                         clockRestartTimer.Reset();
                     }
+                    WriteAlarmStatusToFile();
                     clockRestartTimer.Start();
                 }
 
@@ -543,15 +564,18 @@ namespace monoclock
                 displayAlarmText = "Alarm";
                 displayAlarmTextOffsetVector = GetTextOffsetVector(displayAlarmText, nowPlayingFont);
                 displayAlarmTextPosition = new Vector2(screenCenterVector.X - displayAlarmTextOffsetVector.X, 117);
-                randomizeTextOffsetVector = GetTextOffsetVector(randomizeText, snoozeRegularFont);
-                randomizeTextPosition = new Vector2(screenCenterVector.X - randomizeTextOffsetVector.X, lowerRowTextAlign);
-                if(randomizePlayback)
+                if (!displaySnooze)
                 {
-                    spriteBatch.DrawString(snoozeRegularFont, randomizeText, randomizeTextPosition, clockFaceColor);
-                }
-                else
-                {
-                    spriteBatch.DrawString(snoozeRegularFont, randomizeText, randomizeTextPosition, clockFaceDisabledColor);
+                    randomizeTextOffsetVector = GetTextOffsetVector(randomizeText, snoozeRegularFont);
+                    randomizeTextPosition = new Vector2(screenCenterVector.X - randomizeTextOffsetVector.X, lowerRowTextAlign);
+                    if (randomizePlayback)
+                    {
+                        spriteBatch.DrawString(snoozeRegularFont, randomizeText, randomizeTextPosition, clockFaceColor);
+                    }
+                    else
+                    {
+                        spriteBatch.DrawString(snoozeRegularFont, randomizeText, randomizeTextPosition, clockFaceDisabledColor);
+                    }
                 }
             }
             else
@@ -775,24 +799,24 @@ namespace monoclock
         }
 
         //reads the current alarm enabled/disabled status from a file
-        private bool GetAlarmStatusFromFile()
+        private string GetAlarmStatusFromFile()
         {
-            int alarmStatusFromFile = 1;
+            string alarmStatusFromFile = "11";
             if (File.Exists(alarmStatusFile))
             {
-                if (int.TryParse(File.ReadAllText(alarmStatusFile), out alarmStatusFromFile));
+                alarmStatusFromFile = File.ReadAllText(alarmStatusFile);
             }
             else
             {
                 File.WriteAllText(alarmStatusFile, alarmStatusFromFile.ToString());
             }
-            return Convert.ToBoolean(alarmStatusFromFile);
+            return alarmStatusFromFile;
         }
 
         //writes the current alarm enabled/disabled status to a file
         private void WriteAlarmStatusToFile()
         {
-            File.WriteAllText(alarmStatusFile, (Convert.ToInt32(alarmEnabled)).ToString());
+            File.WriteAllText(alarmStatusFile, (Convert.ToInt32(alarmEnabled)).ToString() + (Convert.ToInt32(randomizePlayback)).ToString());
         }
 
         //find the songs we are supposed to play
